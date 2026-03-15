@@ -60,6 +60,29 @@ After cleaning, a quality assessment was done across all four cities to understa
 
 **Overall quality ranking.** Based on record completeness, missing value rates, and internal consistency, Mumbai and Delhi have the highest quality data for this 25-year period. Dehradun is reliable for temperature and precipitation but less so for wind and dew point. Jaipur has the most caveats, particularly for the pre-2005 period, and any conclusions drawn from Jaipur's early data should be treated with more caution than the other three cities.
 
+## Part 4 — Iterative Refinement
+
+While the initial pipeline produced clean datasets and useful visualizations, exploratory analysis revealed a few areas where the methodology could be improved. Rather than treating the cleaning and analysis rules as fixed, several steps were refined after inspecting the behavior of the data across seasons and cities.
+
+**Seasonal Refinement of Anomaly Detection**
+
+The first version of the anomaly detection step used a robust z-score computed across the entire dataset for each variable. Although this approach is resistant to extreme values, applying a single global distribution to weather data introduced a seasonal bias. In particular, monsoon rainfall and summer heat events appeared statistically unusual when compared against the full-year distribution, even though they are normal within their seasonal context.
+
+To address this, anomaly detection was recalculated within seasonal subsets of the data. Instead of computing the median and median absolute deviation over the full record, these statistics are now calculated within each calendar month. This allows rainfall during the monsoon and temperature during peak summer to be evaluated relative to their expected seasonal ranges rather than the annual distribution. The refinement reduces false anomaly flags while preserving genuinely unusual observations.
+
+**Threshold Sensitivity Analysis**
+
+The anomaly detection threshold was also evaluated through sensitivity testing. The original implementation used a robust z-score threshold of 3.5, which is commonly used for identifying extreme deviations. However, exploratory analysis showed that the number of flagged observations varied noticeably between cities and seasons.
+
+To ensure that the anomaly detection step remained stable and interpretable, multiple thresholds were tested, including 3.0, 3.5, and 4.0. The results were compared by examining the number and distribution of flagged observations across cities and time periods. A threshold of 3.5 was retained because it provided a balanced detection rate: it preserved genuine extremes without producing an excessive number of statistical anomalies.
+
+**Refinement of Temperature Gap Handling**
+
+During visualization of rolling averages and trend estimates, short gaps in the temperature time series occasionally created small discontinuities in the smoothed curves. These gaps occurred when sensor errors or missing records had previously been converted to NaN during the cleaning stage.
+
+To maintain continuity in temperature trends, short missing segments in temperature-related variables (TEMP, MAX, and MIN) are now filled using linear interpolation. This approach estimates values between adjacent observations while preserving the underlying temporal structure of the data.
+
+Precipitation values are intentionally excluded from interpolation because rainfall is event-driven rather than continuous. Generating artificial rainfall values between dry and wet days would distort the interpretation of rainfall intensity and extreme precipitation events.
 
 # Exploratory Analysis and Visualisation:  
 ## 1.Seasonal Cycle Characterisation
