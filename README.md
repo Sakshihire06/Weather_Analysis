@@ -61,6 +61,47 @@ After cleaning, a quality assessment was done across all four cities to understa
 **Overall quality ranking.** Based on record completeness, missing value rates, and internal consistency, Mumbai and Delhi have the highest quality data for this 25-year period. Dehradun is reliable for temperature and precipitation but less so for wind and dew point. Jaipur has the most caveats, particularly for the pre-2005 period, and any conclusions drawn from Jaipur's early data should be treated with more caution than the other three cities.
 
 
+# Exploratory Analysis and Visualisation:  
+## 1.Seasonal Cycle Characterisation
+To uncover season cycle characteristics,the daily data will first be aggregated into monthly statistics. Monthly aggregation helps reveal the underlying seasonal signal more clearly. For each year, for temperature and dew variables, monthly mean values will be calculated, while for precipitation variables, monthly totals will be computed.This aggregation will produce a dataset where each record represents a specific month and year for each city.  
+Planned aggregation:  
+  
+Temperature → monthly mean  
+Precipitation → monthly total  
+
+Once monthly data are generated, the next step will involve computing long-term monthly averages across all years in the dataset. This means that, for each city, all January values across the 25-year period will be averaged together, all February values will be averaged together, and so on. This process will produce a 12-point seasonal cycle representing the typical behaviour of each month.  
+### Visualization:  
+Following the computation of monthly averages, seasonal patterns will be visualised to examine how weather variables change throughout the year.  
+Static visualisations:These plots will be generated using Python libraries such as Matplotlib and Seaborn.  
+    1.Monthly seasonal cycle plot (x-axis will have months and the y-axis will have variable(s)).  
+    2.Seasonal behaviour between cities: Separate lines in above graph will be plotted for each city, allowing direct comparison of seasonal behaviour across locations.  
+    3.Seasonal heatmaps (months are displayed on one axis and years on the other) : Colour intensity will represent the magnitude of variable(s).    
+
+## 2. Inter-annual variability
+To analyze year-to-year variability in weather patterns across cities by computing annual statistics from daily observations and visualizing how these metrics change over time.
+Daily observations are grouped by city and year.
+Metrics calculated: Annual mean temperature , Annual total precipitation, Maximum yearly temperature, Minimum yearly temperature  
+### Visualization:
+Static Plot: Line Plots (Year vs variable(s)) - For each cities and all cities in same plot.  
+
+## 3. Interactive visualisations
+These plots will be developed using Plotly to allow dynamic exploration of seasonal patterns.  
+  
+  1.multi-city cycle chart: It will be the same as the static line static visualization but here users can toggle individual cities on or off.  
+  2.Seasonal behaviour across the entire 25-year dataset: Instead of months/year in X axis we will have date in x axis because hover information will display exact values. This feature is useful for understanding precise seasonal differences between locations. Users can zoom into specific years or seasons to analyse variability.  
+  
+## 4. Variability
+Variability tells us how much weather values fluctuate.  
+Daily variability: This reveals whether a city experiences stable weather conditions or large day-to-day changes.  
+Yearly variability: Evaluate how stable a city’s climate is across years.    
+Using these two scales keeps the analysis clear while still capturing both short-term weather variability and longer-term climate variability.  
+Several statistical measures can be used to quantify this spread like: Standard deviation, Variance,Range, Interquartile range (IQR).Among these metrics, standard deviation is most commonly used in climate and meteorological studies because it provides an intuitive measure of how much observations fluctuate around the mean.  
+So, we will compute standard deviation , IQR and range for daily and yearly statistics.  
+  
+### Visualization  
+1.For daily variability: Boxplot. A boxplot summarizes the key properties of the distribution, including the median, quartiles, overall spread, and potential outliers.  
+2.For yearly variability: Line plot. A jagged, steep-sloped line plot indicates high variability over time compared to a flat, horizontal line, which suggests stability.  
+3.Direct Comparison of City Variability:A bar chart of standard deviation provides a simple visual comparison. In this plot, higher bars indicate cities with greater variability in temperature.
 
 
 
