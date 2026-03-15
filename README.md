@@ -6,21 +6,7 @@
 ## Additional Tasks-1: Trend Analysis Methodology
 
 ### Overview
-This component implements and evaluates two distinct time series smoothing techniques to furtur analyze temperature trends across four Indian cities (Mumbai, Delhi, Dehradun, Jaipur) from <Insert years bro>. The analysis also focuses on understanding how methodological choices impact trend interpretation in the meteorological data.
-
-### Methods Implemented
-
-*1. Rolling Window Statistics*
-A moving average approach that smooths short-term fluctuations to highlight longer-term trends. Multiple window sizes (7, 30, 90 days) are tested to assess sensitivity to window selection. The centered rolling mean preserves the temporal alignment while reducing noise from daily variations.
-
-
-
-*2. Seasonal-Trend Decomposition (STL)*
-A robust loe## 📊 Trend Analysis Methodology
-*Implemented by [Your Name]*
-
-### Overview
-This component implements and evaluates two distinct time series smoothing techniques to analyze temperature trends across four Indian cities (Mumbai, Delhi, Chennai, Kolkata) from 2020-2024. The analysis focuses on understanding how methodological choices impact trend interpretation in meteorological data.
+This component implements and evaluates two distinct time series smoothing techniques to further analyze temperature trends across four Indian cities (Mumbai, Delhi, Dehradun, Jaipur) from <Insert years pls>. The analysis also focuses on understanding how methodological choices impact trend interpretation in the meteorological data.
 
 ### Methods Implemented
 
@@ -34,7 +20,7 @@ A robust local regression-based decomposition method that separates the temperat
 - **Residual**: Remaining irregular variations and anomalies
 
 *3. Harmonic (Fourier) Analysis*
-A spectral decomposition method using Fast Fourier Transform (FFT) that identifies dominant periodic cycles in the data by transforming from the time domain to the frequency domain. This approach quantifies the strength and significance of specific frequencies, revealing cyclical patterns that may not be immediately apparent in the time domain due to the interplay of various processes in the atmosphere.
+A spectral decomposition method using Fast Fourier Transform (FFT) that identifies dominant periodic cycles in the data by transforming from the time domain to the frequency domain. This approach quantifies the strength and significance of specific frequencies, revealing cyclical patterns that may not be immediately apparent in the time domain due to the interplay of atmospheric processes.
 
 ### Method Comparison
 
