@@ -138,7 +138,7 @@ This component implements and evaluates three distinct time series smoothing tec
 *1. Rolling Window Statistics*
 A moving average approach that smoothens short-term fluctuations to highlight longer-term trends. Multiple window sizes (7, 30, 90 days) are tested to assess sensitivity to window selection. The centered rolling mean preserves the temporal alignment while reducing noise from daily variations.
 
-*2. Seasonal-Trend Decomposition (STL)*
+*2. Local Regression*
 A loess(locally estimated scatterplot smoothing)-based decomposition method that separates the temperature time series into three distinct components:
 - **Trend**: Long-term directional changes
 - **Seasonal**: Repeating patterns within each year
