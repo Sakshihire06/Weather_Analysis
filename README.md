@@ -19,7 +19,7 @@ All 25 files per city are downloaded in a loop and combined into one dataframe. 
 
 One problem I ran into early was that NOAA's server kept returning HTTP 503 errors when using the default `pd.read_csv(url)` method. This was happening because NOAA's CDN treats plain Python requests as bots and blocks them. The fix was to use a `requests.Session` with proper browser-like headers (a Chrome User-Agent, Accept-Language, and Referer), along with retry logic that waits and tries again if a 503 comes back. I also added a small random delay between requests so it doesn't look like automated scraping. After these changes the downloads worked consistently.
 
-To speed things up, I also used Python's `ThreadPoolExecutor` to download 3 years simultaneously instead of one by one, which cut the total download time down a lot.
+
 
 
 
