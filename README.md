@@ -50,7 +50,7 @@ After all of this, each city ends up with roughly 8,900 to 9,125 clean rows. The
 
 ## Part 3 — Data Quality Report
 
-After cleaning, a quality assessment was done across all four cities to understand how reliable and consistent each city's data is. This is important because two cities might have the same number of rows on paper, but one might have far more missing values or a shorter stretch of usable records than the other, which affects how much confidence you can place in any comparisons made between them.
+After cleaning, a quality assessment would be done across all four cities to understand how reliable and consistent each city's data is. This is important because two cities might have the same number of rows on paper, but one might have far more missing values or a shorter stretch of usable records than the other, which affects how much confidence you can place in any comparisons made between them.
 
 **Record length and coverage.** All four cities have data from 2000 to 2024, giving a maximum possible record of around 9,125 daily observations each. In practice, Jaipur's records are slightly shorter because the primary NOAA station for Jaipur had gaps in some early years, requiring a fallback to a backup station ID. Delhi and Mumbai have the most complete records, while Dehradun has some years with noticeably fewer observations than expected, likely due to periods where the station was not reporting.
 
