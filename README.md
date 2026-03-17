@@ -1,7 +1,7 @@
 # Weather_Analysis
 ## What This Project Is About
 
-This is a Python-based data analysis project that looks at daily weather patterns across four Indian cities — Mumbai, Delhi, Dehradun, and Jaipur — over the last 25 years. The data is taken from NOAA's Global Summary of the Day (GSOD) database, which is a publicly available source that records daily weather observations from stations all around the world.
+This is a Python-based data analysis project that looks at daily weather patterns across four Indian cities — Mumbai, Delhi, Dehradun, and Jodhpur — over the last 25 years. The data is taken from NOAA's Global Summary of the Day (GSOD) database, which is a publicly available source that records daily weather observations from stations all around the world.
 
 The main idea was to go from raw downloaded data all the way to clean, analysis-ready data, and then explore what the numbers actually say about how weather behaves differently across these cities over time.
 
@@ -15,7 +15,7 @@ The data was downloaded directly from NOAA's website using Python, so there is n
 https://www.ncei.noaa.gov/data/global-summary-of-the-day/access/{year}/{station_id}.csv
 ```
 
-All 25 files per city are downloaded in a loop and combined into one dataframe. The four station IDs used are Mumbai (43003099999), Delhi (42182099999), Dehradun (42189099999), and Jaipur (42170099999). Jaipur had coverage gaps in some early years, so the script automatically tests a few backup station IDs and picks whichever one has confirmed data.
+All 25 files per city are downloaded in a loop and combined into one dataframe. The four station IDs used are Mumbai (43003099999), Delhi (42182099999), Dehradun (42189099999), and Jodhpur (42339099999).
 
 One problem I ran into early was that NOAA's server kept returning HTTP 503 errors when using the default `pd.read_csv(url)` method. This was happening because NOAA's CDN treats plain Python requests as bots and blocks them. The fix was to use a `requests.Session` with proper browser-like headers (a Chrome User-Agent, Accept-Language, and Referer), along with retry logic that waits and tries again if a 503 comes back. I also added a small random delay between requests so it doesn't look like automated scraping. After these changes the downloads worked consistently.
 
@@ -52,14 +52,13 @@ After all of this, each city ends up with roughly 8,900 to 9,125 clean rows. The
 
 After cleaning, a quality assessment would be done across all four cities to understand how reliable and consistent each city's data is. This is important because two cities might have the same number of rows on paper, but one might have far more missing values or a shorter stretch of usable records than the other, which affects how much confidence you can place in any comparisons made between them.
 
-**Record length and coverage.** All four cities have data from 2000 to 2024, giving a maximum possible record of around 9,125 daily observations each. In practice, Jaipur's records are slightly shorter because the primary NOAA station for Jaipur had gaps in some early years, requiring a fallback to a backup station ID. Delhi and Mumbai have the most complete records, while Dehradun has some years with noticeably fewer observations than expected, likely due to periods where the station was not reporting.
+**Record length and coverage.** All four cities have data from 2000 to 2024, giving a maximum possible record of around 9,125 daily observations each. data for Dehradun has some years with noticeably fewer observations than expected, likely due to periods where the station was not reporting.
 
-**Missing data patterns.** The rate of missing values is not the same across all variables or all cities. Temperature variables (TEMP, MAX, MIN) tend to be well recorded across all four cities since these are the most fundamental observations. Precipitation is the most commonly missing variable, particularly for Dehradun and Jaipur during non-monsoon months when dry days may not always be reported as zero — the distinction between "no rain" and "no observation" is not always clear in the raw data. Wind speed and dew point have higher missingness across the board, with some years where these columns are almost entirely absent for certain stations. The pipeline generates a month-by-month missing rate heatmap for each variable and each city so these patterns can be seen clearly.
+**Missing data patterns.** The rate of missing values is not the same across all variables or all cities. Temperature variables (TEMP, MAX, MIN) tend to be well recorded across all four cities since these are the most fundamental observations. Precipitation is the most commonly missing variable.
 
-**Measurement inconsistencies.** One pattern that shows up in Jaipur's data specifically is a period in the early 2000s where precipitation values appear to have been recorded in a different unit before conversion, producing a cluster of values that are plausible but systematically lower than surrounding years. This is flagged in the anomaly detection step. Mumbai's records are the most internally consistent, which likely reflects the fact that it is a major international airport station with more rigorous maintenance. Dehradun, being a smaller inland station, has occasional year-long stretches where wind speed readings are missing entirely and where temperature ranges are narrower than expected, suggesting the station may have had instrumentation issues during those periods.
+**Measurement inconsistencies.**   Mumbai's records are the most internally consistent, which likely reflects the fact that it is a major international airport station with more rigorous maintenance. Dehradun, being a smaller inland station, has occasional year-long stretches where wind speed readings are missing entirely and where temperature ranges are narrower than expected, suggesting the station may have had instrumentation issues during those periods.
 
-**Overall quality ranking.** Based on record completeness, missing value rates, and internal consistency, Mumbai and Delhi have the highest quality data for this 25-year period. Dehradun is reliable for temperature and precipitation but less so for wind and dew point. Jaipur has the most caveats, particularly for the pre-2005 period, and any conclusions drawn from Jaipur's early data should be treated with more caution than the other three cities.
-
+**Overall quality ranking.** Based on record completeness, missing value rates, and internal consistency, Mumbai and Delhi have the highest quality data for this 25-year period. Dehradun is reliable for temperature and precipitation but less so for wind and dew point.
 ## Part 4 — Iterative Refinement
 
 While the initial pipeline produced clean datasets and useful visualizations, exploratory analysis revealed a few areas where the methodology could be improved. Rather than treating the cleaning and analysis rules as fixed, several steps were refined after inspecting the behavior of the data across seasons and cities.
