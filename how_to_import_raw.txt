@@ -1,8 +1,0 @@
-How to Import raw Data?
-hi , use the commands listed below to use raw_data,Ty
-
-from .mumbai_raw   import get_raw_data as get_mumbai_raw
-from .delhi_raw    import get_raw_data as get_delhi_raw
-from .dehradun_raw import get_raw_data as get_dehradun_raw
-from .jodhpur_raw  import get_raw_data as get_jodhpur_raw
-
