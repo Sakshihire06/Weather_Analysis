@@ -1,1 +1,26 @@
+HOW TO IMPORT DATA
+==================
+hi , use the below commands to import data, ty
+CLEANED DATA (use this for analysis):
 
+    from cleaned_data import get_mumbai_cleaned, get_delhi_cleaned, get_dehradun_cleaned, get_jodhpur_cleaned
+
+    mumbai   = get_mumbai_cleaned()
+    delhi    = get_delhi_cleaned()
+    dehradun = get_dehradun_cleaned()
+    jodhpur  = get_jodhpur_cleaned()
+
+    # combine all 4
+    import pandas as pd
+    all_cities = pd.concat([mumbai, delhi, dehradun, jodhpur], ignore_index=True)
+
+
+RAW DATA (only if you need data before cleaning):
+
+    from raw_data import get_mumbai_raw, get_delhi_raw, get_dehradun_raw, get_jodhpur_raw
+
+    mumbai_raw = get_mumbai_raw()
+
+
+NOTE: both raw_data/ and cleaned_data/ folders must be in the same directory
+as your notebook for imports to work.
