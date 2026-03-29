@@ -147,36 +147,40 @@ def plot_yearly_trend(yearly_df):
     )
     fig.show()
 
-def plot_heatmap(monthly_df, city):
-    df = monthly_df[monthly_df['CITY'] == city].copy()
+def plot_all_heatmaps(monthly_df):
+    cities = monthly_df['CITY'].unique()
 
-    years = sorted(df['YEAR'].unique())
-    months = list(range(1, 13))
+    for city in cities:
+        df = monthly_df[monthly_df['CITY'] == city].copy()
 
-    full_index = pd.MultiIndex.from_product(
-        [years, months],
-        names=['YEAR', 'MONTH']
-    )
+        # full grid (YEAR x MONTH)
+        years = sorted(df['YEAR'].unique())
+        months = list(range(1, 13))
 
-    df = df.set_index(['YEAR', 'MONTH']).reindex(full_index).reset_index()
+        full_index = pd.MultiIndex.from_product(
+            [years, months],
+            names=['YEAR', 'MONTH']
+        )
 
-    pivot = df.pivot(index='YEAR', columns='MONTH', values='TEMP_mean')
-    pivot = pivot.sort_index().sort_index(axis=1)
+        df = df.set_index(['YEAR', 'MONTH']).reindex(full_index).reset_index()
 
-    fig = px.imshow(
-        pivot,
-        aspect='auto',
-        color_continuous_scale='RdYlBu_r',
-        labels=dict(x="Month", y="Year", color="Temp (°C)"),
-        title=f"{city} Temperature Heatmap"
-    )
+        pivot = df.pivot(index='YEAR', columns='MONTH', values='TEMP_mean')
+        pivot = pivot.sort_index().sort_index(axis=1)
 
-    fig.update_layout(
-        xaxis=dict(tickmode='linear'),
-        yaxis=dict(autorange='reversed')
-    )
+        fig = px.imshow(
+            pivot,
+            aspect='auto',
+            color_continuous_scale='RdYlBu_r',
+            labels=dict(x="Month", y="Year", color="Temp (°C)"),
+            title=f"{city} Temperature Heatmap"
+        )
 
-    fig.show()
+        fig.update_layout(
+            xaxis=dict(tickmode='linear'),
+            yaxis=dict(autorange='reversed')
+        )
+
+        fig.show()
 
 def plot_variability(df):
     fig = px.box(
@@ -249,7 +253,7 @@ if __name__ == "__main__":
     plot_seasonal_cycle(monthly_df)
     plot_precip_cycle(monthly_df)
     plot_yearly_trend(yearly_df)
-    plot_heatmap(monthly_df, 'Dehradun')
+    plot_all_heatmaps(monthly_df)
     plot_variability(analysis_df)
     plot_extreme_events(monthly_df)
     plot_rain_extremes(monthly_df)
