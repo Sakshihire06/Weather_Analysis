@@ -19,6 +19,14 @@ KNOWN_EXTREMES = [
     (2022, 5, 'MAX', 'Delhi May 2022 heatwave - 49.2C, hottest in 122 years'),
 ]
 
+REQUIRED_COLUMNS = [
+    'YEAR', 'MONTH',
+    'TEMP_C', 'MAX_C', 'MIN_C',
+    'DEWP_C', 'PRCP_MM',
+    'WDSP_MS', 'MXSPD_MS', 'GUST_MS',
+    'FRSHTT',
+]
+
 
 def clean(df):
     df = df.copy()
@@ -51,58 +59,61 @@ def clean(df):
     if 'VISIB' in df.columns:
         df['VISIB'] = df['VISIB'] * 1.60934
 
+    # rename columns to reflect metric units
+    df = df.rename(columns={
+        'TEMP':  'TEMP_C',
+        'MAX':   'MAX_C',
+        'MIN':   'MIN_C',
+        'DEWP':  'DEWP_C',
+        'PRCP':  'PRCP_MM',
+        'WDSP':  'WDSP_MS',
+        'MXSPD': 'MXSPD_MS',
+        'GUST':  'GUST_MS',
+    })
+
     # remove physically impossible values
-    for col in ['PRCP', 'WDSP', 'MXSPD', 'GUST', 'SNDP', 'VISIB']:
+    for col in ['PRCP_MM', 'WDSP_MS', 'MXSPD_MS', 'GUST_MS']:
         if col in df.columns:
             df.loc[df[col] < 0, col] = np.nan
-    for col in ['TEMP', 'MAX', 'MIN', 'DEWP']:
+    for col in ['TEMP_C', 'MAX_C', 'MIN_C', 'DEWP_C']:
         if col in df.columns:
             df.loc[(df[col] < -90) | (df[col] > 60), col] = np.nan
-    if 'PRCP' in df.columns:
-        df.loc[df['PRCP'] > 2000, 'PRCP'] = np.nan
-    if 'WDSP' in df.columns:
-        df.loc[df['WDSP'] > 90, 'WDSP'] = np.nan
-    if 'MAX' in df.columns and 'MIN' in df.columns:
-        df.loc[df['MAX'] < df['MIN'], ['MAX', 'MIN']] = np.nan
-    if 'DEWP' in df.columns and 'TEMP' in df.columns:
-        df.loc[df['DEWP'] > (df['TEMP'] + 2), 'DEWP'] = np.nan
+    if 'PRCP_MM' in df.columns:
+        df.loc[df['PRCP_MM'] > 2000, 'PRCP_MM'] = np.nan
+    if 'WDSP_MS' in df.columns:
+        df.loc[df['WDSP_MS'] > 90, 'WDSP_MS'] = np.nan
+    if 'MAX_C' in df.columns and 'MIN_C' in df.columns:
+        df.loc[df['MAX_C'] < df['MIN_C'], ['MAX_C', 'MIN_C']] = np.nan
+    if 'DEWP_C' in df.columns and 'TEMP_C' in df.columns:
+        df.loc[df['DEWP_C'] > (df['TEMP_C'] + 2), 'DEWP_C'] = np.nan
 
-    # flag extreme weather days (kept in data, just labelled)
-    if 'PRCP' in df.columns:
-        df['HEAVY_RAIN_DAY']      = df['PRCP'] >= IMD_HEAVY_RAIN
-        df['VERY_HEAVY_RAIN_DAY'] = df['PRCP'] >= IMD_VERY_HEAVY
-        df['EXTREME_RAIN_DAY']    = df['PRCP'] >= IMD_EXTREME_RAIN
-    if 'MAX' in df.columns:
-        df['HEATWAVE_DAY']    = df['MAX'] >= IMD_HEATWAVE
-        df['SEVERE_HEAT_DAY'] = df['MAX'] >= IMD_SEVERE_HEAT
-
-    # mark known historical events so they dont get removed by anomaly detection
-    df['KNOWN_EXTREME']      = False
-    df['KNOWN_EXTREME_DESC'] = ''
+    # anomaly detection (internal only - used to guard known extremes, not exported)
+    df['_KNOWN_EXTREME'] = False
     for (ev_year, ev_month, ev_var, ev_desc) in KNOWN_EXTREMES:
         mask = (df['YEAR'] == ev_year) & (df['MONTH'] == ev_month)
-        df.loc[mask, 'KNOWN_EXTREME']      = True
-        df.loc[mask, 'KNOWN_EXTREME_DESC'] = ev_desc
+        df.loc[mask, '_KNOWN_EXTREME'] = True
 
-    # robust anomaly scoring per month using median + mad
-    for col in ['TEMP', 'MAX', 'MIN', 'PRCP', 'WDSP', 'DEWP']:
+    for col in ['TEMP_C', 'MAX_C', 'MIN_C', 'PRCP_MM', 'WDSP_MS', 'DEWP_C']:
         if col not in df.columns:
             continue
         monthly_median = df.groupby('MONTH')[col].transform('median')
         monthly_mad    = df.groupby('MONTH')[col].transform(
             lambda x: (x - x.median()).abs().median()
         )
-        df[col + '_zscore']  = np.where(
+        zscore = np.where(
             monthly_mad > 0,
             0.6745 * (df[col] - monthly_median) / monthly_mad,
             0.0
         )
-        df[col + '_anomaly'] = df[col + '_zscore'].abs() > 3.5
-        df.loc[df['KNOWN_EXTREME'] == True, col + '_anomaly'] = False
-        df[col + '_pctile'] = df.groupby('MONTH')[col].rank(pct=True).round(3)
+        is_anomaly = pd.Series(np.abs(zscore) > 3.5, index=df.index)
+        # null out anomalies that are NOT known extremes
+        df.loc[is_anomaly & ~df['_KNOWN_EXTREME'], col] = np.nan
 
-    df = df.drop(columns=['DATE'], errors='ignore')
-    print(f'Delhi cleaned - {len(df)} rows')
+    # keep only required columns (drop internal helpers and everything else)
+    output_cols = [c for c in REQUIRED_COLUMNS if c in df.columns]
+    df = df[output_cols]
+
+    print(f'Delhi cleaned - {len(df)} rows, {len(df.columns)} columns')
     return df
 
 
