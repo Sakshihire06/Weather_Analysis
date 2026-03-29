@@ -217,6 +217,7 @@ def plot_yearly_trend(yearly_df):
     )
     fig.show()
 
+<<<<<<< HEAD
 
 def plot_all_heatmaps(monthly_df):
     cities = monthly_df['CITY'].unique()
@@ -231,6 +232,17 @@ def plot_all_heatmaps(monthly_df):
     for idx, city in enumerate(cities):
         df = monthly_df[monthly_df['CITY'] == city].copy()
         years = sorted(df['YEAR'].unique())
+=======
+def plot_all_heatmaps(monthly_df):
+    cities = monthly_df['CITY'].unique()
+
+    for city in cities:
+        df = monthly_df[monthly_df['CITY'] == city].copy()
+
+        # full grid (YEAR x MONTH)
+        years = sorted(df['YEAR'].unique())
+        months = list(range(1, 13))
+>>>>>>> aa3595fe3d59a0746211190ea3e71e019c5edd31
 
         full_index = pd.MultiIndex.from_product(
             [years, months],
@@ -238,6 +250,7 @@ def plot_all_heatmaps(monthly_df):
         )
 
         df = df.set_index(['YEAR', 'MONTH']).reindex(full_index).reset_index()
+<<<<<<< HEAD
         pivot = df.pivot(index='YEAR', columns='MONTH', values='TEMP_mean')
         pivot = pivot.reindex(columns=months).sort_index()
 
@@ -284,8 +297,26 @@ def plot_all_heatmaps(monthly_df):
         yaxis=dict(title='Year', autorange='reversed'),
         margin=dict(r=160)
     )
+=======
 
-    fig.show()
+        pivot = df.pivot(index='YEAR', columns='MONTH', values='TEMP_mean')
+        pivot = pivot.sort_index().sort_index(axis=1)
+
+        fig = px.imshow(
+            pivot,
+            aspect='auto',
+            color_continuous_scale='RdYlBu_r',
+            labels=dict(x="Month", y="Year", color="Temp (°C)"),
+            title=f"{city} Temperature Heatmap"
+        )
+>>>>>>> aa3595fe3d59a0746211190ea3e71e019c5edd31
+
+        fig.update_layout(
+            xaxis=dict(tickmode='linear'),
+            yaxis=dict(autorange='reversed')
+        )
+
+        fig.show()
 
 
 def plot_variability(df):
@@ -365,6 +396,7 @@ if __name__ == "__main__":
 
     analysis_df, monthly_df, yearly_df, var_df = run_eda_pipeline(df)
 
+<<<<<<< HEAD
     # You can uncomment the plots you want to visualize
     #plot_seasonal_cycle(monthly_df)
     #plot_precip_cycle(monthly_df)
@@ -373,3 +405,13 @@ if __name__ == "__main__":
     #plot_variability(analysis_df)
     #plot_extreme_events(monthly_df)
     #plot_rain_extremes(monthly_df)
+=======
+    plot_seasonal_cycle(monthly_df)
+    plot_precip_cycle(monthly_df)
+    plot_yearly_trend(yearly_df)
+    plot_all_heatmaps(monthly_df)
+    plot_variability(analysis_df)
+    plot_extreme_events(monthly_df)
+    plot_rain_extremes(monthly_df)
+
+>>>>>>> aa3595fe3d59a0746211190ea3e71e019c5edd31
