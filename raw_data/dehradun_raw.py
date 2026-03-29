@@ -6,7 +6,7 @@ import io
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 CITY_NAME  = 'Dehradun'
-STATION_ID = '42189099999'
+STATION_ID = '42111099999'
 LAT        = 30.32
 LON        = 78.03
 
