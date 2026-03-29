@@ -285,12 +285,12 @@ def plot_all_heatmaps(monthly_df):
         margin=dict(r=160)
     )
 
-        fig.update_layout(
-            xaxis=dict(tickmode='linear'),
-            yaxis=dict(autorange='reversed')
-        )
+    fig.update_layout(
+        xaxis=dict(tickmode='linear'),
+        yaxis=dict(autorange='reversed')
+    )
 
-        fig.show()
+    fig.show()
 
 
 def plot_variability(df):
