@@ -6,3 +6,11 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+
+# Virtual environments and local settings
+.venv/
+venv/
+.env
+
+# Generated analysis outputs
+Trend_analysis/results/

@@ -3,6 +3,8 @@ import requests
 import time
 import random
 import io
+import xarray as xr
+from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 CITY_NAME  = 'Dehradun'
@@ -42,6 +44,12 @@ def download_one_year(station_id, year):
 
 
 def get_raw_data():
+    local_nc = Path(__file__).resolve().parent / 'nc_raw' / 'dehradun_raw.nc'
+    if local_nc.exists():
+        df = xr.open_dataset(local_nc).to_dataframe().reset_index()
+        print(f'loaded local raw data for {CITY_NAME}  {len(df)} rows - dehradun_raw.py:50')
+        return df
+
     years = list(range(START_YEAR, END_YEAR + 1))
     frames = {}
 
@@ -52,17 +60,17 @@ def get_raw_data():
             year, df = future.result()
             if df is not None:
                 frames[year] = df
-                print(f'downloaded {CITY_NAME} {year} - {len(df)} rows')
+                print(f'downloaded {CITY_NAME} {year}  {len(df)} rows - dehradun_raw.py:63')
             else:
-                print(f'skipped {CITY_NAME} {year} - no data')
+                print(f'skipped {CITY_NAME} {year}  no data - dehradun_raw.py:65')
 
     if not frames:
-        print(f'something went wrong, no data for {CITY_NAME}')
+        print(f'something went wrong, no data for {CITY_NAME} - dehradun_raw.py:68')
         return pd.DataFrame()
 
     combined = pd.concat([frames[y] for y in sorted(frames)], ignore_index=True)
     combined['CITY'] = CITY_NAME
-    print(f'{CITY_NAME} done - {len(combined)} rows total')
+    print(f'{CITY_NAME} done  {len(combined)} rows total - dehradun_raw.py:73')
     return combined
 
 

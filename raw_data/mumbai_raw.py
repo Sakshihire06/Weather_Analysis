@@ -3,6 +3,8 @@ import requests
 import time
 import random
 import io
+import xarray as xr
+from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 CITY_NAME  = 'Mumbai'
@@ -42,6 +44,12 @@ def download_one_year(station_id, year):
 
 
 def get_raw_data():
+    local_nc = Path(__file__).resolve().parent / 'nc_raw' / 'mumbai_raw.nc'
+    if local_nc.exists():
+        df = xr.open_dataset(local_nc).to_dataframe().reset_index()
+        print(f'loaded local raw data for {CITY_NAME} - {len(df)} rows')
+        return df
+
     years = list(range(START_YEAR, END_YEAR + 1))
     frames = {}
 

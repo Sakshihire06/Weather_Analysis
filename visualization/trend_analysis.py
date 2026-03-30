@@ -29,6 +29,17 @@ def load_saved_cleaned_city(filename: str, city_name: str) -> pd.DataFrame:
     return df
 
 
+def load_all_saved_cleaned_data() -> pd.DataFrame:
+    city_files = [
+        ('mumbai_cleaned.nc', 'Mumbai'),
+        ('delhi_cleaned.nc', 'Delhi'),
+        ('dehradun_cleaned.nc', 'Dehradun'),
+        ('jodhpur_cleaned.nc', 'Jodhpur'),
+    ]
+    frames = [load_saved_cleaned_city(filename, city_name) for filename, city_name in city_files]
+    return pd.concat(frames, ignore_index=True)
+
+
 def normalize_analysis_schema(df: pd.DataFrame, city_name: str) -> pd.DataFrame:
     df = df.copy()
 
@@ -182,7 +193,7 @@ def plot_seasonal_cycle(monthly_df):
         title='Seasonal Temperature Cycle'
     )
     fig.update_layout(xaxis=dict(dtick=1))
-    fig.show()
+    return fig
 
 
 def plot_precip_cycle(monthly_df):
@@ -200,7 +211,7 @@ def plot_precip_cycle(monthly_df):
         title='Seasonal Rainfall Cycle'
     )
     fig.update_layout(xaxis=dict(dtick=1))
-    fig.show()
+    return fig
 
 
 def plot_yearly_trend(yearly_df):
@@ -215,7 +226,7 @@ def plot_yearly_trend(yearly_df):
         markers=True,
         title='Inter-Annual Temperature Trend'
     )
-    fig.show()
+    return fig
 
 
 def plot_all_heatmaps(monthly_df):
@@ -290,7 +301,7 @@ def plot_all_heatmaps(monthly_df):
         yaxis=dict(autorange='reversed')
     )
 
-    fig.show()
+    return fig
 
 
 def plot_variability(df):
@@ -302,12 +313,12 @@ def plot_variability(df):
         color_discrete_map=CITY_COLORS,
         title='Temperature Variability'
     )
-    fig.show()
+    return fig
 
 
 def plot_extreme_events(monthly_df):
     if 'HEATWAVE_COUNT' not in monthly_df.columns:
-        return
+        return go.Figure()
 
     df = (
         monthly_df.groupby(['CITY', 'YEAR'], as_index=False)['HEATWAVE_COUNT']
@@ -324,12 +335,12 @@ def plot_extreme_events(monthly_df):
         markers=True,
         title='Heatwave Trend'
     )
-    fig.show()
+    return fig
 
 
 def plot_rain_extremes(monthly_df):
     if 'EXTREME_RAIN_COUNT' not in monthly_df.columns:
-        return
+        return go.Figure()
 
     df = (
         monthly_df.groupby(['CITY', 'YEAR'], as_index=False)['EXTREME_RAIN_COUNT']
@@ -346,7 +357,7 @@ def plot_rain_extremes(monthly_df):
         markers=True,
         title='Extreme Rainfall Trend'
     )
-    fig.show()
+    return fig
 
 
 def run_eda_pipeline(df: pd.DataFrame):

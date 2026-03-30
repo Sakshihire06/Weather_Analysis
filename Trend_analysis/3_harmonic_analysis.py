@@ -19,6 +19,9 @@ cities = {'Mumbai': mumbai, 'Delhi': delhi, 'Dehradun': dehradun, 'Jodhpur': jod
 print("Harmonic (Fourier) Analysis")
 print("="*40)
 
+results_dir = os.path.join(os.path.dirname(__file__), 'results')
+os.makedirs(results_dir, exist_ok=True)
+
 fig, axes = plt.subplots(2, 2, figsize=(14, 8))
 axes = axes.flatten()
 
@@ -27,7 +30,7 @@ for idx, (city, data) in enumerate(cities.items()):
     data['DATE'] = pd.to_datetime(data['DATE'])
     data = data.sort_values('DATE')
     
-    temp = data['TEMP'].dropna().values
+    temp = data['TEMP_C'].dropna().values
     n = len(temp)
     
     fft_vals = np.fft.fft(temp)
@@ -42,5 +45,5 @@ for idx, (city, data) in enumerate(cities.items()):
     axes[idx].grid(True)
 
 plt.tight_layout()
-plt.savefig('Trend_analysis/results/harmonic_analysis.png')
-plt.show()
+plt.savefig(os.path.join(results_dir, 'harmonic_analysis.png'))
+plt.close(fig)
