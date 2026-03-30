@@ -6,10 +6,12 @@ Use direct package imports such as:
 """
 
 from .trend_analysis import (
+    CITY_COLORS,
     add_rolling,
     create_monthly_df,
     create_variability_df,
     create_yearly_df,
+    load_all_saved_cleaned_data,
     plot_all_heatmaps,
     plot_extreme_events,
     plot_precip_cycle,

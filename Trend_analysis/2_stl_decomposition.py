@@ -16,8 +16,11 @@ jodhpur = get_jodhpur_cleaned()
 
 cities = {'Mumbai': mumbai, 'Delhi': delhi, 'Dehradun': dehradun, 'Jodhpur': jodhpur}
 
-print("STL Decomposition Analysis")
-print("="*40)
+print("STL Decomposition Analysis - 2_stl_decomposition.py:19")
+print("= - 2_stl_decomposition.py:20"*40)
+
+results_dir = os.path.join(os.path.dirname(__file__), 'results')
+os.makedirs(results_dir, exist_ok=True)
 
 fig, axes = plt.subplots(4, 3, figsize=(15, 12))
 
@@ -25,9 +28,9 @@ for idx, (city, data) in enumerate(cities.items()):
     data = data.copy()
     data['DATE'] = pd.to_datetime(data['DATE'])
     data = data.set_index('DATE').asfreq('D')
-    data['TEMP'] = data['TEMP'].interpolate()
+    data['TEMP_C'] = data['TEMP_C'].interpolate()
     
-    stl = STL(data['TEMP'].dropna(), period=365, robust=True)
+    stl = STL(data['TEMP_C'].dropna(), period=365, robust=True)
     result = stl.fit()
     
     axes[idx, 0].plot(result.trend)
@@ -38,5 +41,5 @@ for idx, (city, data) in enumerate(cities.items()):
     axes[idx, 2].set_title(f'{city} - Residual')
 
 plt.tight_layout()
-plt.savefig('Trend_analysis/results/stl_decomposition.png')
-plt.show()
+plt.savefig(os.path.join(results_dir, 'stl_decomposition.png'))
+plt.close(fig)

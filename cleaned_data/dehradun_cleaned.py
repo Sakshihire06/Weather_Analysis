@@ -19,6 +19,7 @@ KNOWN_EXTREMES = [
 ]
 
 REQUIRED_COLUMNS = [
+    'DATE', 'CITY',
     'YEAR', 'MONTH',
     'TEMP_C', 'MAX_C', 'MIN_C',
     'DEWP_C', 'PRCP_MM',
