@@ -81,25 +81,70 @@ def plot_humidity(seasonal):
         plt.savefig(f"reports/figures/{city}_humidity.png")
         plt.show()
 
-def interactive_dashboard(df):
+def interactive_yearly(yearly):
     import plotly.express as px
 
-    df_long = df.melt(
-        id_vars=["DATE", "CITY"],
-        value_vars=["TEMP_C", "PRCP_MM", "DEWP_C", "WDSP_MS"],
+    yearly_long = yearly.melt(
+        id_vars=["YEAR", "CITY"],
+        value_vars=["TEMP_MEAN", "PRCP_TOTAL", "DEW_MEAN", "WIND_SPEED"],
         var_name="VARIABLE",
         value_name="VALUE"
     )
 
+    yearly_long = yearly_long.sort_values("YEAR")
+
     fig = px.line(
-        df_long,
-        x="DATE",
+        yearly_long,
+        x="YEAR",
         y="VALUE",
         color="CITY",
-        animation_frame="VARIABLE",
-        title="Interactive Multi-variable Weather Dashboard")
+        facet_row="VARIABLE",
+        markers=True,
+        template="plotly_white",
+        title="Interannual Climate Trends"
+    )
 
-    fig.write_html("reports/figures/full_dashboard.html")
+    
+    fig.for_each_xaxis(lambda x: x.update(
+        showticklabels=True,
+        tickmode="linear"
+    ))
+
+    
+    fig.update_yaxes(matches=None, side="left")
+
+    
+    for annotation in fig.layout.annotations:
+        annotation.text = ""
+
+    
+    label_map = {
+        "TEMP_MEAN": "Temperature (°C)",
+        "PRCP_TOTAL": "Rainfall (mm)",
+        "DEW_MEAN": "Dew Point (°C)",
+        "WIND_SPEED": "Wind Speed (m/s)"
+    }
+
+    
+    variables = yearly_long["VARIABLE"].unique()[::-1]
+
+    for i, var in enumerate(variables):
+        fig.layout[f'yaxis{i+1}'].title.text = label_map[var]
+
+    
+    for i in range(2, 10):
+        axis = f'yaxis{i}'
+        if axis in fig.layout:
+            fig.layout[axis].side = "left"
+
+    fig.update_layout(
+        height=1000,
+        xaxis_title="Year",
+        legend_title="City",
+        margin=dict(l=60, r=40, t=60, b=60)
+    )
+
+    fig.write_html("reports/figures/yearly_interactive.html")
     fig.show()
 
 if __name__ == "__main__":
@@ -111,7 +156,7 @@ if __name__ == "__main__":
     plot_temperature(seasonal)
     plot_rainfall(seasonal)
     plot_humidity(seasonal)
-    interactive_dashboard(df)
+    interactive_monthly(seasonal)
 
 
     
