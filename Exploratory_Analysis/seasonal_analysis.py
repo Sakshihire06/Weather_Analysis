@@ -66,19 +66,41 @@ def plot_rainfall(seasonal):
     plt.savefig("reports/figures/rainfall_seasonality.png")
     plt.show()
 
-def plot_humidity(seasonal):
-
-    for city in seasonal["CITY"].unique():
-        subset = seasonal[seasonal["CITY"] == city]
-
-        plt.figure()
-        plt.plot(subset["MONTH"], subset["TEMP_MEAN"], label="Temp")
-        plt.plot(subset["MONTH"], subset["DEW_MEAN"], label="Dew Point")
-
-        plt.title(f"{city}'s Humidity")
-        plt.legend()
-        plt.savefig(f"reports/figures/{city}_humidity.png")
-        plt.show()
+def plot_comparative_humidity(seasonal):
+    """Plot static side-by-side humidity comparison using Temp vs Dew Point."""
+    sns.set_style("whitegrid")
+    fig, axes = plt.subplots(1, 4, figsize=(20, 6), sharey=True)
+    cities = ["Mumbai", "Delhi", "Dehradun", "Jodhpur"]
+    
+    for i, city in enumerate(cities):
+        subset = seasonal[seasonal["CITY"] == city].sort_values("MONTH")
+        ax = axes[i]
+        
+        ax.plot(subset["MONTH"], subset["TEMP_MEAN"], label="Temp", color="#d95f02", lw=2)
+        ax.plot(subset["MONTH"], subset["DEW_MEAN"], label="Dew Point", color="#7570b3", lw=2)
+        
+      
+        fill_color = "blue" if city == "Mumbai" else "gray"
+        fill_alpha = 0.3 if city == "Mumbai" else 0.1
+        
+        ax.fill_between(subset["MONTH"], subset["TEMP_MEAN"], subset["DEW_MEAN"], 
+                        color=fill_color, alpha=fill_alpha, label="Humidity Gap")
+        
+        ax.set_title(f"Humidity: {city}", fontsize=14, fontweight='bold')
+        ax.set_xticks(range(1, 13))
+        ax.set_xlabel("Month")
+        
+        if i == 0:
+            ax.set_ylabel("Temperature (°C)")
+        
+    plt.suptitle("Climate Comparison: Mumbai's High Humidity (Narrowest Gap)", fontsize=18, y=1.05)
+    axes[0].legend()
+    
+    plt.tight_layout()
+    
+    os.makedirs("reports/figures", exist_ok=True)
+    plt.savefig("reports/figures/humidity_comparison_static.png", dpi=300, bbox_inches='tight')
+    plt.show()
 
 def interactive_monthly(seasonal):
     import plotly.express as px
@@ -134,7 +156,7 @@ def interactive_monthly(seasonal):
     
     variables = variables[::-1]
 
-    # Assign labels correctly
+    
     for i, var in enumerate(variables):
         fig.layout[f'yaxis{i+1}'].title.text = label_map[var]
 
@@ -151,7 +173,7 @@ def interactive_monthly(seasonal):
         margin=dict(l=60, r=40, t=60, b=60)
     )
 
-    fig.write_html("reports/figures/monthly_dashboard_facets.html")
+    fig.write_html("reports/figures/monthly_interactive.html")
     fig.show()
 if __name__ == "__main__":
     df, seasonal = prepare_monthly_data()
@@ -161,7 +183,7 @@ if __name__ == "__main__":
 
     plot_temperature(seasonal)
     plot_rainfall(seasonal)
-    plot_humidity(seasonal)
+    plot_comparative_humidity(seasonal)
     interactive_monthly(seasonal)
 
 
