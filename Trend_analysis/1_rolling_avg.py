@@ -40,5 +40,6 @@ for idx, city in enumerate(all_cities['CITY'].unique()):
     axes[idx].grid(True)
 
 plt.tight_layout()
+plt.show()
 plt.savefig(os.path.join(results_dir, 'rolling_average.png'))
 plt.close(fig)

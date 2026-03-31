@@ -41,5 +41,6 @@ for idx, (city, data) in enumerate(cities.items()):
     axes[idx, 2].set_title(f'{city} - Residual')
 
 plt.tight_layout()
+plt.show()
 plt.savefig(os.path.join(results_dir, 'stl_decomposition.png'))
 plt.close(fig)

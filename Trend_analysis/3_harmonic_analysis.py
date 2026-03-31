@@ -45,5 +45,6 @@ for idx, (city, data) in enumerate(cities.items()):
     axes[idx].grid(True)
 
 plt.tight_layout()
+plt.show()
 plt.savefig(os.path.join(results_dir, 'harmonic_analysis.png'))
 plt.close(fig)
