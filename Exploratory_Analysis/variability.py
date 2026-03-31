@@ -5,11 +5,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
+from main_eda import load_all_cities
 
-from .main_eda import load_all_cities
-def yearly_variability(df):
-
-    # Aggregate to yearly level
+def prepare_variability():
+    
+    df = load_all_cities() 
     yearly = df.groupby(["CITY", "YEAR"]).agg(
         TEMP_MEAN=("TEMP_C", "mean"),
         PRCP_TOTAL=("PRCP_MM", "sum"),
@@ -17,7 +17,7 @@ def yearly_variability(df):
         WIND_MEAN=("WDSP_MS", "mean"),
     ).reset_index()
 
-    # Compute variability per city
+    
     var = yearly.groupby("CITY").agg(
         TEMP_STD=("TEMP_MEAN", "std"),
         PRCP_STD=("PRCP_TOTAL", "std"),
@@ -32,40 +32,32 @@ def yearly_variability(df):
 
     return yearly, var
 def variability_table(var):
-    print("\n📊 Yearly Variability Summary (CV + STD)\n")
+    print("Yearly Variability Summary (CV + STD)\n")
     print(var.round(3))
 
     var.to_csv("reports/yearly_variability.csv", index=False)
 def plot_variability_bar(var):
-    import plotly.express as px
-
+    plt.figure(figsize=(10, 6))
+    
     var_long = var.melt(
         id_vars="CITY",
         value_vars=["TEMP_CV", "PRCP_CV", "DEW_CV", "WIND_CV"],
         var_name="VARIABLE",
         value_name="CV"
     )
+    sns.barplot(data=var_long, x="CITY", y="CV", hue="VARIABLE")
 
-    fig = px.bar(
-        var_long,
-        x="CITY",
-        y="CV",
-        color="VARIABLE",
-        barmode="group",
-        template="plotly_white",
-        title="Yearly Variability Comparison (CV)"
-    )
-
-    fig.update_layout(
-        xaxis_title="City",
-        yaxis_title="Coefficient of Variation"
-    )
-
-    fig.write_html("reports/figures/yearly_variability_bar.html")
-    fig.show()
+    plt.title("Yearly Variability Comparison (Coefficient of Variation)")
+    plt.ylabel("Coefficient of Variation")
+    plt.xlabel("City")
+    plt.legend(title="Variable", bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    
+    plt.tight_layout()
+    plt.savefig("reports/figures/yearly_variability_bar.png", dpi=300)
+    plt.show()
 def plot_yearly_box(yearly):
-    import plotly.express as px
-
+    # Melt the data
     yearly_long = yearly.melt(
         id_vars=["CITY", "YEAR"],
         value_vars=["TEMP_MEAN", "PRCP_TOTAL", "DEW_MEAN", "WIND_MEAN"],
@@ -73,31 +65,28 @@ def plot_yearly_box(yearly):
         value_name="VALUE"
     )
 
-    fig = px.box(
-        yearly_long,
-        x="CITY",
-        y="VALUE",
-        color="CITY",
-        facet_row="VARIABLE",
-        template="plotly_white",
-        title="Yearly Distribution of Climate Variables"
+    g = sns.catplot(
+        data=yearly_long, 
+        x="CITY", 
+        y="VALUE", 
+        hue="CITY",
+        row="VARIABLE", 
+        kind="box", 
+        height=3, 
+        aspect=3,
+        sharey=False  
     )
 
-    # Clean look (like before)
-    fig.update_yaxes(matches=None)
+    g.set_titles("{row_name}") 
+    g.fig.suptitle("Yearly Distribution of Climate Variables", y=1.02)
+    
+    plt.savefig("reports/figures/yearly_variability_box.png", dpi=300, bbox_inches='tight')
+    plt.show()
 
-    for annotation in fig.layout.annotations:
-        annotation.text = ""
 
-    fig.update_layout(height=900)
-
-    fig.write_html("reports/figures/yearly_variability_box.html")
-    fig.show()
 if __name__ == "__main__":
-    df = load_all_cities()
+    yearly_df, var_df = prepare_variability()
 
-    yearly, var = yearly_variability(df)
-
-    variability_table(var)
-    plot_variability_bar(var)
-    plot_yearly_box(yearly)
+    variability_table(var_df)
+    plot_variability_bar(var_df)
+    plot_yearly_box(yearly_df)

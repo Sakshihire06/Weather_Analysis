@@ -5,12 +5,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
-
-from .main_eda import load_all_cities
-
+from main_eda import load_all_cities
 
 def prepare_monthly_data():
-    df = load_all_cities()
+    
+    df = load_all_cities() 
 
     monthly_yearly = df.groupby(["CITY", "YEAR", "MONTH"]).agg(
         TEMP_MEAN=("TEMP_C", "mean"),
@@ -81,53 +80,61 @@ def plot_humidity(seasonal):
         plt.savefig(f"reports/figures/{city}_humidity.png")
         plt.show()
 
-def interactive_yearly(yearly):
+def interactive_monthly(seasonal):
     import plotly.express as px
 
-    yearly_long = yearly.melt(
-        id_vars=["YEAR", "CITY"],
-        value_vars=["TEMP_MEAN", "PRCP_TOTAL", "DEW_MEAN", "WIND_SPEED"],
+    seasonal_long = seasonal.melt(
+        id_vars=["MONTH", "CITY"],
+        value_vars=["TEMP_MEAN", "PRCP_MEAN", "DEW_MEAN", "WIND_SPEED"],
         var_name="VARIABLE",
         value_name="VALUE"
     )
 
-    yearly_long = yearly_long.sort_values("YEAR")
+    seasonal_long = seasonal_long.sort_values("MONTH")
 
     fig = px.line(
-        yearly_long,
-        x="YEAR",
+        seasonal_long,
+        x="MONTH",
         y="VALUE",
         color="CITY",
         facet_row="VARIABLE",
         markers=True,
         template="plotly_white",
-        title="Interannual Climate Trends"
+        title="Monthly Seasonal Climate Patterns"
     )
 
     
     fig.for_each_xaxis(lambda x: x.update(
         showticklabels=True,
-        tickmode="linear"
+        tickmode="array",
+        tickvals=list(range(1, 13)),
+        ticktext=[
+            "Jan","Feb","Mar","Apr","May","Jun",
+            "Jul","Aug","Sep","Oct","Nov","Dec"
+        ]
     ))
 
-    
+   
     fig.update_yaxes(matches=None, side="left")
 
-    
     for annotation in fig.layout.annotations:
         annotation.text = ""
 
     
     label_map = {
         "TEMP_MEAN": "Temperature (°C)",
-        "PRCP_TOTAL": "Rainfall (mm)",
+        "PRCP_MEAN": "Rainfall (mm)",
         "DEW_MEAN": "Dew Point (°C)",
         "WIND_SPEED": "Wind Speed (m/s)"
     }
 
     
-    variables = yearly_long["VARIABLE"].unique()[::-1]
+    variables = seasonal_long["VARIABLE"].unique()
 
+    
+    variables = variables[::-1]
+
+    # Assign labels correctly
     for i, var in enumerate(variables):
         fig.layout[f'yaxis{i+1}'].title.text = label_map[var]
 
@@ -139,14 +146,13 @@ def interactive_yearly(yearly):
 
     fig.update_layout(
         height=1000,
-        xaxis_title="Year",
+        xaxis_title="Month",
         legend_title="City",
         margin=dict(l=60, r=40, t=60, b=60)
     )
 
-    fig.write_html("reports/figures/yearly_interactive.html")
+    fig.write_html("reports/figures/monthly_dashboard_facets.html")
     fig.show()
-
 if __name__ == "__main__":
     df, seasonal = prepare_monthly_data()
 
