@@ -3,7 +3,6 @@ os.makedirs("reports/figures", exist_ok=True)
 
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 import plotly.express as px
 from main_eda import load_all_cities
 
@@ -55,7 +54,6 @@ def plot_rainfall_trend(yearly):
     plt.savefig("reports/figures/rainfall_trend.png")
     plt.show()
 def interactive_yearly(yearly):
-    import plotly.express as px
 
     yearly_long = yearly.melt(
         id_vars=["YEAR", "CITY"],
@@ -64,7 +62,6 @@ def interactive_yearly(yearly):
         value_name="VALUE"
     )
 
-    yearly_long = yearly_long.sort_values("YEAR")
 
     fig = px.line(
         yearly_long,
@@ -84,27 +81,12 @@ def interactive_yearly(yearly):
     fig.update_yaxes(matches=None, side="left")
 
     
-    for annotation in fig.layout.annotations:
-        annotation.text = ""
-
-    
     label_map = {
         "TEMP_MEAN": "Temperature (°C)",
         "PRCP_TOTAL": "Rainfall (mm)",
         "DEW_MEAN": "Dew Point (°C)",
         "WIND_SPEED": "Wind Speed (m/s)"
     }
-
-   
-    variables = yearly_long["VARIABLE"].unique()[::-1]
-
-    for i, var in enumerate(variables):
-        fig.layout[f'yaxis{i+1}'].title.text = label_map[var]
-
-    for i in range(2, 10):
-        axis = f'yaxis{i}'
-        if axis in fig.layout:
-            fig.layout[axis].side = "left"
 
 
     fig.update_layout(
