@@ -70,7 +70,7 @@ def interactive_yearly(yearly):
         color="CITY",
         facet_row="VARIABLE",
         category_orders={
-        "VARIABLE": ["TEMP_MEAN", "PRCP_MEAN", "DEW_MEAN", "WIND_SPEED"]
+        "VARIABLE": ["TEMP_MEAN", "PRCP_TOTAL", "DEW_MEAN", "WIND_SPEED"]},
         markers=True,
         template="plotly_white",
         title="Interannual Climate Trends"
