@@ -67,8 +67,7 @@ def plot_rainfall(seasonal):
     plt.show()
 
 def plot_comparative_humidity(seasonal):
-    """Plot static side-by-side humidity comparison using Temp vs Dew Point."""
-    sns.set_style("whitegrid")
+    plt.style.use("ggplot") 
     fig, axes = plt.subplots(1, 4, figsize=(20, 6), sharey=True)
     cities = ["Mumbai", "Delhi", "Dehradun", "Jodhpur"]
     
@@ -97,13 +96,10 @@ def plot_comparative_humidity(seasonal):
     axes[0].legend()
     
     plt.tight_layout()
-    
-    os.makedirs("reports/figures", exist_ok=True)
     plt.savefig("reports/figures/humidity_comparison_static.png", dpi=300, bbox_inches='tight')
     plt.show()
 
 def interactive_monthly(seasonal):
-    import plotly.express as px
 
     seasonal_long = seasonal.melt(
         id_vars=["MONTH", "CITY"],
@@ -112,7 +108,6 @@ def interactive_monthly(seasonal):
         value_name="VALUE"
     )
 
-    seasonal_long = seasonal_long.sort_values("MONTH")
 
     fig = px.line(
         seasonal_long,
@@ -158,7 +153,7 @@ def interactive_monthly(seasonal):
 
     
     for i, var in enumerate(variables):
-        fig.layout[f'yaxis{i+1}'].title.text = label_map[var]
+        labels=label_map
 
     
     for i in range(2, 10):
