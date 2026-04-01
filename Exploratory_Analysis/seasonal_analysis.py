@@ -3,7 +3,6 @@ os.makedirs("reports/figures", exist_ok=True)
 
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 import plotly.express as px
 from main_eda import load_all_cities
 
