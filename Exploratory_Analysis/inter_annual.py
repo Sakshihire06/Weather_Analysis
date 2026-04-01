@@ -61,7 +61,18 @@ def interactive_yearly(yearly):
         var_name="VARIABLE",
         value_name="VALUE"
     )
+    yearly_long["VARIABLE"] = pd.Categorical(
+        yearly_long["VARIABLE"],
+        categories=["WIND_SPEED", "DEW_MEAN", "PRCP_TOTAL", "TEMP_MEAN"],
+        ordered=True
+    )
 
+    label_map = {
+        "TEMP_MEAN": "Temperature (°C)",
+        "PRCP_TOTAL": "Rainfall (mm)",
+        "DEW_MEAN": "Dew Point (°C)",
+        "WIND_SPEED": "Wind Speed (m/s)"
+    }
 
     fig = px.line(
         yearly_long,
@@ -69,37 +80,22 @@ def interactive_yearly(yearly):
         y="VALUE",
         color="CITY",
         facet_row="VARIABLE",
-        category_orders={
-        "VARIABLE":["WIND_SPEED", "DEW_MEAN", "PRCP_TOTAL", "TEMP_MEAN"]},
+        labels=label_map,
         markers=True,
         template="plotly_white",
         title="Interannual Climate Trends"
     )
+    for ann in fig.layout.annotations:
+        ann.text = ann.text.split("=")[-1]
 
-    fig.for_each_xaxis(lambda x: x.update(
-        showticklabels=True,
-        tickmode="linear"
-    ))
-    fig.update_yaxes(matches=None, side="left")
-
-    
-    label_map = {
-        "TEMP_MEAN": "Temperature (°C)",
-        "PRCP_TOTAL": "Rainfall (mm)",
-        "DEW_MEAN": "Dew Point (°C)",
-        "WIND_SPEED": "Wind Speed (m/s)"
-    }
-    labels=label_map,
-
+    fig.update_yaxes(matches=None)
 
     fig.update_layout(
         height=1000,
         xaxis_title="Year",
-        legend_title="City",
-        margin=dict(l=60, r=40, t=60, b=60)
+        legend_title="City"
     )
 
-    fig.write_html("reports/figures/yearly_interactive.html")
     fig.show()
 if __name__ == "__main__":
     df, yearly = prepare_yearly_data()
