@@ -143,22 +143,8 @@ def interactive_monthly(seasonal):
         "DEW_MEAN": "Dew Point (°C)",
         "WIND_SPEED": "Wind Speed (m/s)"
     }
+    label=label_map
 
-    
-    variables = seasonal_long["VARIABLE"].unique()
-
-    
-    variables = variables[::-1]
-
-    
-    for i, var in enumerate(variables):
-        labels=label_map
-
-    
-    for i in range(2, 10):
-        axis = f'yaxis{i}'
-        if axis in fig.layout:
-            fig.layout[axis].side = "left"
 
     fig.update_layout(
         height=1000,
