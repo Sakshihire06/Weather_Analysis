@@ -133,8 +133,7 @@ def interactive_monthly(seasonal):
    
     fig.update_yaxes(matches=None, side="left")
 
-    for annotation in fig.layout.annotations:
-        annotation.text = ""
+  
 
     
     label_map = {
@@ -143,7 +142,6 @@ def interactive_monthly(seasonal):
         "DEW_MEAN": "Dew Point (°C)",
         "WIND_SPEED": "Wind Speed (m/s)"
     }
-    label=label_map
 
 
     fig.update_layout(
