@@ -61,11 +61,28 @@ def interactive_yearly(yearly):
         var_name="VARIABLE",
         value_name="VALUE"
     )
-    yearly_long["VARIABLE"] = pd.Categorical(
-        yearly_long["VARIABLE"],
-        categories=["TEMP_MEAN", "PRCP_TOTAL", "DEW_MEAN", "WIND_SPEED"],
-        ordered=True
+
+    yearly_long = yearly_long.sort_values("YEAR")
+
+    fig = px.line(
+        yearly_long,
+        x="YEAR",
+        y="VALUE",
+        color="CITY",
+        facet_row="VARIABLE",
+        markers=True,
+        template="plotly_white",
+        title="Interannual Climate Trends"
     )
+    fig.for_each_xaxis(lambda x: x.update(
+        showticklabels=True,
+        tickmode="linear"
+    ))
+
+    fig.update_yaxes(matches=None, side="left")
+
+    for annotation in fig.layout.annotations:
+        annotation.text = ""
 
     label_map = {
         "TEMP_MEAN": "Temperature (°C)",
@@ -74,29 +91,24 @@ def interactive_yearly(yearly):
         "WIND_SPEED": "Wind Speed (m/s)"
     }
 
-    fig = px.line(
-        yearly_long,
-        x="YEAR",
-        y="VALUE",
-        color="CITY",
-        facet_row="VARIABLE",
-        labels=label_map,
-        markers=True,
-        template="plotly_white",
-        title="Interannual Climate Trends"
-    )
-    for ann in fig.layout.annotations:
-    var_name = ann.text.split("=")[-1]
-    ann.text = label_map.get(var_name, var_name)
+    variables = yearly_long["VARIABLE"].unique()[::-1]
 
-    fig.update_yaxes(matches=None)
+    for i, var in enumerate(variables):
+        fig.layout[f'yaxis{i+1}'].title.text = label_map[var]
+
+    for i in range(2, 10):
+        axis = f'yaxis{i}'
+        if axis in fig.layout:
+            fig.layout[axis].side = "left"
 
     fig.update_layout(
         height=1000,
         xaxis_title="Year",
-        legend_title="City"
+        legend_title="City",
+        margin=dict(l=60, r=40, t=60, b=60)
     )
 
+    fig.write_html("reports/figures/yearly_interactive.html")
     fig.show()
 if __name__ == "__main__":
     df, yearly = prepare_yearly_data()
