@@ -86,7 +86,8 @@ def interactive_yearly(yearly):
         title="Interannual Climate Trends"
     )
     for ann in fig.layout.annotations:
-        ann.text = ann.text.split("=")[-1]
+    var_name = ann.text.split("=")[-1]
+    ann.text = label_map.get(var_name, var_name)
 
     fig.update_yaxes(matches=None)
 
