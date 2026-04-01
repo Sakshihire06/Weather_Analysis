@@ -63,7 +63,7 @@ def interactive_yearly(yearly):
     )
     yearly_long["VARIABLE"] = pd.Categorical(
         yearly_long["VARIABLE"],
-        categories=["WIND_SPEED", "DEW_MEAN", "PRCP_TOTAL", "TEMP_MEAN"],
+        categories=["TEMP_MEAN", "PRCP_TOTAL", "DEW_MEAN", "WIND_SPEED"],
         ordered=True
     )
 
