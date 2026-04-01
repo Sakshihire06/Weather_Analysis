@@ -70,7 +70,7 @@ def interactive_yearly(yearly):
         color="CITY",
         facet_row="VARIABLE",
         category_orders={
-        "VARIABLE": ["TEMP_MEAN", "PRCP_TOTAL", "DEW_MEAN", "WIND_SPEED"]},
+        "VARIABLE":["WIND_SPEED", "DEW_MEAN", "PRCP_TOTAL", "TEMP_MEAN"]},
         markers=True,
         template="plotly_white",
         title="Interannual Climate Trends"
@@ -89,6 +89,7 @@ def interactive_yearly(yearly):
         "DEW_MEAN": "Dew Point (°C)",
         "WIND_SPEED": "Wind Speed (m/s)"
     }
+    labels=label_map,
 
 
     fig.update_layout(
