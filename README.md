@@ -17,7 +17,7 @@ The repo currently includes:
 - cleaned-data pipelines with metric-unit conversion and anomaly handling
 - exploratory analysis utilities in `visualization/`
 - trend-analysis scripts for rolling average, STL decomposition, harmonic analysis, and method comparison
-- a Dash dashboard in `app.py`
+- a Dash dashboard under `dashboard/app.py` with a root `app.py` launcher
 - local `.nc` datasets in `raw_data/nc_raw/` and `cleaned_data/nc_cleaned/`
 
 The dashboard and analysis scripts now work from the local saved datasets, so they do not depend on live NOAA downloads every time you run them.
@@ -27,9 +27,13 @@ The dashboard and analysis scripts now work from the local saved datasets, so th
 ```text
 Weather_Analysis/
 |-- app.py
+|-- dashboard/
+|   `-- app.py
 |-- requirements.txt
 |-- raw_data/
 |-- cleaned_data/
+|-- Exploratory_Analysis/
+|-- Refinement/
 |-- Trend_analysis/
 |-- visualization/
 |-- data_preprocessing/
@@ -57,7 +61,9 @@ The cleaned NetCDF datasets are stored in `cleaned_data/nc_cleaned/`.
 
 ### 3. Exploratory Analysis
 
-The module in `visualization/trend_analysis.py` provides reusable functions for:
+The repo now includes exploratory analysis scripts under `Exploratory_Analysis/` and reusable chart helpers under `visualization/`.
+
+These cover:
 
 - seasonal temperature cycles
 - rainfall cycles
@@ -68,18 +74,29 @@ The module in `visualization/trend_analysis.py` provides reusable functions for:
 
 ### 4. Trend Analysis
 
-The `Trend_analysis/` folder contains:
+The `Trend_analysis/` folder now centers on `trend_analysis.py`, which runs:
 
-- `1_rolling_avg.py`: rolling-window smoothing
-- `2_stl_decomposition.py`: STL trend-seasonal-residual decomposition
-- `3_harmonic_analysis.py`: Fourier-based harmonic analysis
-- `4_compare_methods.py`: comparison of smoothing performance
+- rolling-window smoothing
+- STL trend-seasonal-residual decomposition
+- Fourier-based harmonic analysis
+- method comparison across smoothing approaches
 
 These scripts write outputs to `Trend_analysis/results/` when run locally.
 
+### 5. Refinement
+
+The `Refinement/` folder contains:
+
+- `1_smoothing_refinement.py`
+- `2_anomaly_threshold_refinement.py`
+- `3_extreme_event_refinement.py`
+- result tables under `Refinement/results/`
+
 ### 5. Dashboard
 
-The dashboard in `app.py` presents:
+The dashboard logic lives in `dashboard/app.py`, and the root `app.py` is a small launcher for convenience.
+
+The dashboard presents:
 
 - summary metric cards
 - seasonal temperature and rainfall charts
@@ -99,10 +116,16 @@ python -m pip install -r requirements.txt
 
 ## Running the Dashboard
 
-From the project root:
+From the project root, you can run either:
 
 ```powershell
 python app.py
+```
+
+or:
+
+```powershell
+python dashboard/app.py
 ```
 
 Dash will print a local URL, usually:
@@ -115,13 +138,10 @@ Open that URL in your browser.
 
 ## Running Trend Analysis Scripts
 
-You can run the analysis scripts individually from the project root:
+You can run the main trend-analysis script from the project root:
 
 ```powershell
-python Trend_analysis/1_rolling_avg.py
-python Trend_analysis/2_stl_decomposition.py
-python Trend_analysis/3_harmonic_analysis.py
-python Trend_analysis/4_compare_methods.py
+python Trend_analysis/trend_analysis.py
 ```
 
 ## Key Dependencies
@@ -137,5 +157,5 @@ python Trend_analysis/4_compare_methods.py
 
 ## Notes
 
-- Generated figures and CSV outputs under `Trend_analysis/results/` are ignored by git.
-- The dashboard can still build the method-comparison table even if the CSV output has not been generated yet.
+- The dashboard reads current outputs from `reports/`, `Trend_analysis/results/`, and `Refinement/results/`.
+- The root `app.py` is a compatibility launcher; the main dashboard source is `dashboard/app.py`.
