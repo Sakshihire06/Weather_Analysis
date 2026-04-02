@@ -1,0 +1,5 @@
+City,Threshold,Baseline Valid Values,Anomaly Values Removed,Remaining Valid Values,Extra Missing After Threshold (%),Residual Outliers (%),Known Extreme Preservation (%),Composite Score
+Dehradun,3.5,54119,620,53499,1.15,0.22,96.67,94.3
+Delhi,3.5,54434,234,54200,0.43,0.02,100.0,99.26
+Jodhpur,3.5,53869,232,53637,0.43,0.07,100.0,99.15
+Mumbai,3.5,54564,850,53714,1.56,0.47,100.0,96.38

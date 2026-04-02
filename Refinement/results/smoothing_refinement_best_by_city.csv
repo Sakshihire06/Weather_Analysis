@@ -1,0 +1,5 @@
+City,Method,Parameter,Points Used,Noise Reduction (%),RMSE Ratio,Roughness Ratio,Composite Score
+Dehradun,STL,period=180,9130,46.43,0.5427,0.509,17.26
+Delhi,STL,period=180,9132,45.85,0.5432,0.5242,16.36
+Jodhpur,STL,period=180,9132,42.76,0.5526,0.5615,12.18
+Mumbai,Rolling,window=90,9132,36.9,0.648,0.0405,13.41
