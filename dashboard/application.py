@@ -1,5 +1,6 @@
 import os
 import sys
+import base64
 
 from dash import Dash, Input, Output, dash_table, dcc, html
 import pandas as pd
@@ -15,11 +16,24 @@ from cleaned_data.dehradun_cleaned import get_cleaned_data as get_dehradun_data
 from cleaned_data.delhi_cleaned import get_cleaned_data as get_delhi_data
 from cleaned_data.jodhpur_cleaned import get_cleaned_data as get_jodhpur_data
 from cleaned_data.mumbai_cleaned import get_cleaned_data as get_mumbai_data
+from Refinement.plot import ensure_anomaly_plots
 
 
 REPORTS_DIR = os.path.join(PROJECT_ROOT, "reports")
 REFINEMENT_RESULTS_DIR = os.path.join(PROJECT_ROOT, "Refinement", "results")
 TREND_RESULTS_DIR = os.path.join(PROJECT_ROOT, "Trend_analysis", "results")
+FIGURES_DIR = os.path.join(REPORTS_DIR, "figures")
+DATA_QUALITY_FIGURES = {
+    "missing": [
+        os.path.join(PROJECT_ROOT, "data_quality_missing.png"),
+        os.path.join(FIGURES_DIR, "data_quality_missing.png"),
+    ],
+    "stats": [
+        os.path.join(PROJECT_ROOT, "data_quality_stats.png"),
+        os.path.join(FIGURES_DIR, "data_quality_stats.png"),
+    ],
+}
+ANOMALY_REFINEMENT_FIGURES = ensure_anomaly_plots()
 
 CITY_COLORS = {
     "Mumbai": "#0081a7",
@@ -36,6 +50,19 @@ def safe_read_csv(*parts):
     if not os.path.exists(path):
         return pd.DataFrame()
     return pd.read_csv(path)
+
+
+def encode_image(path_options):
+    if isinstance(path_options, str):
+        path_options = [path_options]
+
+    resolved_path = next((path for path in path_options if os.path.exists(path)), None)
+    if not resolved_path:
+        return None
+
+    with open(resolved_path, "rb") as image_file:
+        encoded = base64.b64encode(image_file.read()).decode("utf-8")
+    return f"data:image/png;base64,{encoded}"
 
 
 def load_cleaned_data():
@@ -289,6 +316,42 @@ def panel_header(eyebrow, title, subtitle=None):
             )
         )
     return html.Div(style={"marginBottom": "12px"}, children=children)
+
+
+def report_image_card(eyebrow, title, subtitle, image_path, empty_message="Run the related report script to generate this figure."):
+    encoded_image = encode_image(image_path)
+
+    body = (
+        html.Img(
+            src=encoded_image,
+            style={
+                "width": "100%",
+                "display": "block",
+                "borderRadius": "18px",
+                "border": "1px solid rgba(27, 44, 58, 0.08)",
+            },
+        )
+        if encoded_image
+        else html.Div(
+            empty_message,
+            style={
+                "padding": "28px",
+                "borderRadius": "18px",
+                "border": "1px dashed rgba(49, 88, 106, 0.35)",
+                "backgroundColor": "rgba(49, 88, 106, 0.05)",
+                "color": "#4f6170",
+                "fontSize": "15px",
+            },
+        )
+    )
+
+    return html.Div(
+        style={**GRAPH_STYLE, "padding": "16px"},
+        children=[
+            panel_header(eyebrow, title, subtitle),
+            body,
+        ],
+    )
 
 
 def build_city_snapshot_cards(selected_cities, filtered_analysis, filtered_summary):
@@ -727,6 +790,82 @@ app.layout = html.Div(
                                                         "color": "#2d3a34",
                                                     },
                                                     style_data={"whiteSpace": "normal", "height": "auto"},
+                                                ),
+                                                html.Div(
+                                                    style={"height": "18px"},
+                                                ),
+                                                section_heading(
+                                                    "Anomaly Threshold Visuals",
+                                                    "Threshold selection, trade-offs, and cleaning impact",
+                                                    "These plots are generated from your anomaly-threshold refinement results and give a compact visual view of score behaviour, removals, and residual outliers.",
+                                                ),
+                                                html.Div(
+                                                    style={"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "18px"},
+                                                    children=[
+                                                        report_image_card(
+                                                            "Anomaly Score",
+                                                            "Composite score by threshold",
+                                                            "Shows how each city responds as the anomaly threshold becomes stricter or looser.",
+                                                            ANOMALY_REFINEMENT_FIGURES["score_curve"],
+                                                            "Run `python Refinement/plot/plot_anomaly_refinement.py` to generate the anomaly refinement plots.",
+                                                        ),
+                                                        report_image_card(
+                                                            "Threshold Trade-off",
+                                                            "Missingness vs residual outliers",
+                                                            "A trade-off view between extra missing values after cleaning and the outliers still left behind.",
+                                                            ANOMALY_REFINEMENT_FIGURES["tradeoff_scatter"],
+                                                            "Run `python Refinement/plot/plot_anomaly_refinement.py` to generate the anomaly refinement plots.",
+                                                        ),
+                                                        report_image_card(
+                                                            "Cleaning Impact",
+                                                            "Anomaly values removed across thresholds",
+                                                            "Compares how many values are removed in each city as the threshold changes.",
+                                                            ANOMALY_REFINEMENT_FIGURES["removed_values"],
+                                                            "Run `python Refinement/plot/plot_anomaly_refinement.py` to generate the anomaly refinement plots.",
+                                                        ),
+                                                        report_image_card(
+                                                            "Residual Structure",
+                                                            "Residual outlier heatmap",
+                                                            "Makes it easy to compare leftover outlier rates city by city for every threshold tested.",
+                                                            ANOMALY_REFINEMENT_FIGURES["residual_heatmap"],
+                                                            "Run `python Refinement/plot/plot_anomaly_refinement.py` to generate the anomaly refinement plots.",
+                                                        ),
+                                                    ],
+                                                ),
+                                            ],
+                                        ),
+                                    ],
+                                )
+                            ],
+                        ),
+                        dcc.Tab(
+                            label="Data Quality",
+                            value="data-quality",
+                            style=TAB_STYLE,
+                            selected_style=TAB_SELECTED_STYLE,
+                            children=[
+                                html.Div(
+                                    style={"paddingTop": "16px"},
+                                    children=[
+                                        section_heading(
+                                            "Data Quality Review",
+                                            "Coverage, fill-value exposure, and anomaly diagnostics",
+                                            "These figures summarize missingness in the raw NOAA records and compare coverage, flagged anomalies, replacement counts, and cleaned-data statistics across cities.",
+                                        ),
+                                        html.Div(
+                                            style={"display": "grid", "gap": "18px", "marginBottom": "8px"},
+                                            children=[
+                                                report_image_card(
+                                                    "Missingness",
+                                                    "Percent missing by variable and year",
+                                                    "Heatmaps show where placeholder fill values or blanks dominate the raw record for each city.",
+                                                    DATA_QUALITY_FIGURES["missing"],
+                                                ),
+                                                report_image_card(
+                                                    "Diagnostics",
+                                                    "Coverage, anomaly counts, and cleaned-data summary",
+                                                    "This composite figure combines yearly coverage, anomaly totals, descriptive statistics, and raw fill-value replacement counts.",
+                                                    DATA_QUALITY_FIGURES["stats"],
                                                 ),
                                             ],
                                         ),
