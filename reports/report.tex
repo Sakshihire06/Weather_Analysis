@@ -29,13 +29,63 @@
 % ---- WRITE YOUR REPORT BELOW
 
 \section{Introduction}
-% TODO: to be filled by team
+Weather patterns in India vary significantly across regions due to differences
+in geography, proximity to the coast, and elevation. Understanding these
+differences over a long time period can give useful insights into how local
+climates behave and whether any trends are visible over recent decades.
+
+This project analyses daily weather data for four Indian cities --- Mumbai,
+Delhi, Dehradun, and Jodhpur --- over a 25-year period from 2000 to 2024.
+The cities were chosen to cover a range of climate types: Mumbai is a coastal
+city with high humidity, Delhi and Jodhpur are inland with more extreme
+temperature swings, and Dehradun is a cooler hill station in the foothills
+of the Himalayas. Data was sourced from the NOAA Global Summary of the Day
+(GSOD) database, which provides freely available daily observations from
+weather stations around the world.
+
+The project covers the full pipeline from raw data collection to final
+visualisation. This includes writing automated download scripts, building a
+cleaning pipeline to handle missing values and unit conversions, running
+seasonal and interannual trend analysis, detecting anomalies, and developing
+an interactive dashboard to present the results. The goal was not just to
+produce plots, but to make sure each step of the pipeline was reproducible,
+well-documented, and easy to understand.
 
 \section{Related Work}
-% TODO: to be filled by team
+The NOAA Global Summary of the Day (GSOD) database is one of the most
+widely used sources for long-term daily weather analysis due to its
+consistent format, global station coverage, and free availability.
+It has been used in a number of regional climate studies focusing on
+temperature trends and precipitation variability, particularly in
+monsoon-influenced regions like South Asia.
 
-\section{Our Contribution}
-% TODO: to be filled by team
+For separating seasonal and trend components in meteorological time
+series, Seasonal-Trend decomposition using LOESS (STL) is a well-established
+method introduced by Cleveland et al.\ (1990) \cite{cleveland1990}.
+It is preferred over simpler moving average approaches because it handles
+irregular seasonal shapes and is robust to outliers in the seasonal
+component. This made it a natural choice for our cities, which have
+strongly asymmetric monsoon-driven seasonal cycles.
+
+Harmonic (Fourier) analysis is another standard approach in climatology
+for quantifying dominant periodic cycles in temperature records. By
+fitting sinusoidal components at annual and sub-annual frequencies,
+it allows the fraction of variance explained by each cycle to be
+quantified directly. This is particularly useful for comparing how
+strongly seasonal the climate is across cities with different geographic
+settings.
+
+For anomaly detection in weather data, using the standard z-score
+(based on mean and standard deviation) is known to be problematic
+because extreme events such as floods or heatwaves inflate the mean,
+making genuine anomalies appear less unusual than they are.
+Leys et al.\ (2013) \cite{leys2013} recommend using the Median
+Absolute Deviation (MAD) in place of the standard deviation for
+exactly this reason, as it is far less sensitive to the outliers
+one is trying to detect. Our cleaning pipeline follows this approach,
+computing a robust z-score per variable per month using the monthly
+median and MAD.
+
 
 \section{Methods}
 
@@ -138,7 +188,37 @@ in \texttt{cleaned\_data/nc\_cleaned/}.
 
 \end{enumerate}
 
-\section{Results}
+\subsection{Trend and Smoothing Methods}
+
+Three complementary smoothing methods were implemented to analyse temperature
+trends across the four cities.
+
+\textbf{Rolling Window Average.}
+A moving average was computed over 7, 30, and 90-day windows.
+The 30-day window provided optimal noise reduction, achieving a 28--35\% reduction
+in standard deviation, with Jodhpur benefiting most due to its high day-to-day
+variability.
+
+\textbf{STL Decomposition.}
+Seasonal-Trend decomposition using LOESS (STL) separates temperature into trend,
+seasonal, and residual components.
+Coastal cities (Mumbai, Dehradun) show dampened seasonal amplitudes compared to
+inland cities (Delhi, Jodhpur).
+The trend component revealed a slight warming of +0.3--0.5\textdegree C in Delhi
+and Mumbai over the analysis period.
+
+\textbf{Harmonic Analysis.}
+A Fourier-based decomposition was used to identify dominant periodic cycles.
+The annual cycle explains 65--80\% of temperature variance, strongest in Delhi
+(70\%) and weakest in Mumbai (62\%).
+Progressive harmonic removal isolates residual anomalies by subtracting the
+1st, 2nd, and 5th harmonics sequentially.
+
+\textbf{Method Comparison.}
+Rolling averages are best suited for operational monitoring; STL is preferable
+for process understanding; harmonic analysis uniquely quantifies cycle strength.
+All three methods agree on broad patterns but differ in sensitivity to short-term
+variability.
 
 \subsection{Data Quality Report}
 
@@ -245,6 +325,27 @@ but a subtle increasing trend in recent years.
 Overall, while all cities show some degree of warming, the rate and variability
 differ, emphasising unique local climate dynamics.
 
+\subsection{Trend Analysis Results}
+
+Rolling average results show Jodhpur benefits most from smoothing (35\% noise
+reduction), while Mumbai shows the least (28\%) due to its stable coastal climate.
+The 30-day window emerged as the best default choice across all cities.
+
+STL decomposition revealed that seasonal components account for 60--75\% of
+temperature variation, with Delhi showing the strongest seasonal signal and Mumbai
+the weakest. Dehradun showed the highest residual standard deviation, indicating
+greater irregular variability linked to its topography.
+
+Harmonic analysis shows that after removing the first three harmonics, the remaining
+signal consists almost entirely of weather-scale noise and extreme events, providing
+a clean anomaly signal. The cross-method comparison confirms agreement on broad
+patterns but highlights method-specific sensitivities to short-term variability.
+
+Trend analysis confirmed that method choice affects interpretation: 30-day rolling
+averages optimise noise reduction, STL reveals coastal vs.\ inland seasonal
+differences, and harmonic analysis quantifies the 65--80\% variance explained
+by annual cycles.
+
 \subsection{Variability}
 
 \begin{figure}[tbp]
@@ -281,7 +382,7 @@ and Mumbai.
 
 \begin{figure}[tbp]
     \begin{center}
-        \includegraphics[width=\textwidth]{./figures/humidity_comparitive_static.png}
+        \includegraphics[width=\textwidth]{./figures/humidity_comparison_static.png}
         \caption{Comparative humidity analysis across cities, showing the gap
         between temperature and dew point as a proxy for atmospheric moisture.}
         \label{fig:humidity}
@@ -298,23 +399,270 @@ moisture-laden air.
 This results in persistently high humidity levels with less seasonal fluctuation,
 especially during the monsoon period when moisture content peaks further.
 
+\subsection{Refinement Analysis}
+
+\begin{figure}[tbp]
+    \begin{center}
+        \includegraphics[width=\textwidth]{./figures/anomaly_threshold_scores.png}
+        \caption{Anomaly threshold scores across cities.}
+        \label{fig:threshold_scores}
+    \end{center}
+\end{figure}
+
+\begin{figure}[tbp]
+    \begin{center}
+        \includegraphics[width=\textwidth]{./figures/anomaly_threshold_tradeoff.png}
+        \caption{Trade-off between anomaly removal and data retention at different thresholds.}
+        \label{fig:threshold_tradeoff}
+    \end{center}
+\end{figure}
+
+\begin{figure}[tbp]
+    \begin{center}
+        \includegraphics[width=\textwidth]{./figures/anomaly_values_removed.png}
+        \caption{Number of values removed per city during anomaly refinement.}
+        \label{fig:values_removed}
+    \end{center}
+\end{figure}
+
+\begin{figure}[tbp]
+    \begin{center}
+        \includegraphics[width=\textwidth]{./figures/anomaly_residual_outliers_heatmap.png}
+        \caption{Residual outlier percentages per city after anomaly refinement.}
+        \label{fig:residual_heatmap}
+    \end{center}
+\end{figure}
+
+The refinement results show that the chosen anomaly-detection settings achieve a
+strong balance between data cleaning and signal preservation.
+In Figure~\ref{fig:threshold_scores}, the threshold value of 3.5 gives the best
+overall performance across all four cities, indicating that it is the most suitable
+cutoff for separating unusual observations from the normal climatic background.
+This is further supported by Figure~\ref{fig:threshold_tradeoff}, where the selected
+threshold maintains a favourable balance between removing suspicious values and
+retaining a large share of the original data.
+The pattern suggests that lower thresholds would risk over-cleaning the dataset,
+while higher thresholds would allow more residual anomalies to remain.
+
+The city-wise impact of anomaly refinement can be seen in
+Figures~\ref{fig:values_removed} and~\ref{fig:residual_heatmap}.
+Mumbai records the highest number of removed values, which is reasonable because
+monsoon rainfall and coastal weather variability often produce sharp short-term
+changes more likely to be flagged during refinement.
+In contrast, Delhi and Jodhpur show fewer removals and very low residual outlier
+percentages, indicating a more stable separation between true anomalies and regular
+seasonal behaviour.
+Dehradun falls in between, with moderate removal counts but still good preservation
+of the underlying weather structure.
+Taken together, these plots show that the refinement procedure improves overall
+data consistency without discarding the meaningful climate patterns needed for
+later analysis.
+
+The smoothing refinement results also demonstrate that different cities respond
+best to different methods.
+Dehradun, Delhi, and Jodhpur achieve their highest composite scores with STL
+smoothing using a period of 180, showing that this method is effective at reducing
+short-term irregular noise while preserving the broader seasonal signal.
+Mumbai performs best with a rolling-window approach of 90, which is likely because
+its coastal climate produces smoother long-term variation and less extreme seasonal
+contrast than the inland cities.
+This difference highlights an important result of the refinement stage: the best
+preprocessing choice depends on local climate behaviour rather than a single
+universal setting.
+By selecting the best method city by city, the smoothed series become easier to
+interpret and more suitable for downstream trend and variability analysis.
+
+The extreme-event refinement further improves the reliability of climate-event
+identification across regions.
+The \texttt{season\_aware\_hybrid} rule set performs best in every city, suggesting
+that rules tailored to seasonal context are more effective than rigid global thresholds.
+The resulting event counts are also climatologically meaningful: Delhi and Jodhpur
+show the highest number of heatwave days, while Mumbai records the strongest
+concentration of heavy-rain and extreme-rain events.
+Dehradun also shows substantial heavy-rain activity, which fits its topographic
+and monsoon-influenced setting.
+Because the best-performing rule set aligns closely with expected seasonal timing
+and regional weather behaviour, this refinement step increases confidence that the
+detected extremes reflect genuine climate events rather than random noise or
+artefacts in the raw observations.
+
+\subsection{Dashboard}
+
+An interactive dashboard was developed to present the project outputs in a single,
+accessible interface.
+It brings together the cleaned datasets, seasonal patterns, interannual trends,
+variability measures, and refinement summaries for Mumbai, Delhi, Dehradun, and
+Jodhpur, allowing users to compare cities without running each analysis module
+separately.
+The dashboard therefore acts as a compact visual summary of the full workflow,
+making it easier to explore key results and interpret the major climate differences
+across the selected cities.
 \section{Conclusion and Outlook}
-% TODO: to be filled by team
 
+Trend analysis confirmed that method choice significantly affects interpretation. 
+Specifically, 30-day rolling averages optimise noise reduction, STL decomposition 
+reveals coastal vs.\ inland seasonal differences, and harmonic analysis quantifies 
+that 65--80\% of the variance is explained by annual cycles.
+
+The data quality assessment showed that GUST and SLP are almost entirely missing 
+across all cities, as Indian IMD stations do not transmit these variables to 
+NOAA's GSOD database. PRCP retains the highest number of NaN values after cleaning, 
+particularly for Mumbai and Dehradun. Record coverage remains close to 365 days 
+per year for most cities, with Dehradun in 2000 and Jodhpur in recent years 
+being the primary exceptions.
+
+Seasonal analysis indicates that Jodhpur reaches the highest monthly mean 
+temperature of approximately 35\textdegree C in May, while Mumbai remains the most 
+thermally stable city throughout the year. Mumbai exhibits the sharpest monsoon 
+peak, reaching around 390\,mm in July, whereas Jodhpur records the lowest overall 
+rainfall. Humidity comparisons further confirm Mumbai's coastal characteristics 
+through its consistently narrow temperature--dew point gap, while Jodhpur shows 
+the widest gap during winter. 
+
+On interannual scales, Mumbai demonstrates a gradual warming trend from 
+approximately 27.5\textdegree C to nearly 29\textdegree C over the period 
+2000--2024. Additionally, Dehradun recorded an anomalously high annual rainfall 
+of around 2000\,mm in 2013, consistent with the Uttarakhand cloudbursts 
+observed in that year.
+
+The refinement stage evaluated three key components: smoothing, anomaly-threshold 
+selection, and extreme-event rule tuning using the cleaned weather data for 
+Mumbai, Delhi, Dehradun, and Jodhpur. 
+
+For smoothing, rolling windows of 7, 15, 30, 45, 60, and 90 days were compared 
+alongside STL periods of 90, 180, and 365 days, as well as harmonic counts of 
+2, 4, 6, and 8. The optimal smoothing configuration was achieved using STL 
+(period = 180) for Dehradun, Delhi, and Jodhpur, while Mumbai performed best 
+with a rolling window of 90 days, indicating that longer seasonal smoothing is 
+generally more suitable for most cities.
+
+In anomaly refinement, thresholds ranging from 2.5 to 4.5 were tested. A threshold 
+of 3.5 emerged as optimal across all four cities, as it successfully preserved 
+known extreme events while minimising residual outliers and additional missing values.
+
+For extreme-event classification, three rule sets---\texttt{imd\_fixed}, 
+\texttt{city\_percentile}, and \texttt{season\_aware\_hybrid}---were evaluated. 
+Among these, \texttt{season\_aware\_hybrid} consistently achieved the highest 
+composite score across all cities.
+
+Overall, the selected parameter combination provides the best balance between 
+noise reduction, trend preservation, anomaly control, and realistic detection 
+of weather extremes. Consequently, the refinement process enhances the robustness, 
+interpretability, and reliability of the dataset and its final analysis.\section{Conclusion and Outlook}
+
+Trend analysis confirmed that method choice significantly affects interpretation. 
+Specifically, 30-day rolling averages optimise noise reduction, STL decomposition 
+reveals coastal vs.\ inland seasonal differences, and harmonic analysis quantifies 
+that 65--80\% of the variance is explained by annual cycles.
+
+The data quality assessment showed that GUST and SLP are almost entirely missing 
+across all cities, as Indian IMD stations do not transmit these variables to 
+NOAA's GSOD database. PRCP retains the highest number of NaN values after cleaning, 
+particularly for Mumbai and Dehradun. Record coverage remains close to 365 days 
+per year for most cities, with Dehradun in 2000 and Jodhpur in recent years 
+being the primary exceptions.
+
+Seasonal analysis indicates that Jodhpur reaches the highest monthly mean 
+temperature of approximately 35\textdegree C in May, while Mumbai remains the most 
+thermally stable city throughout the year. Mumbai exhibits the sharpest monsoon 
+peak, reaching around 390\,mm in July, whereas Jodhpur records the lowest overall 
+rainfall. Humidity comparisons further confirm Mumbai's coastal characteristics 
+through its consistently narrow temperature--dew point gap, while Jodhpur shows 
+the widest gap during winter. 
+
+On interannual scales, Mumbai demonstrates a gradual warming trend from 
+approximately 27.5\textdegree C to nearly 29\textdegree C over the period 
+2000--2024. Additionally, Dehradun recorded an anomalously high annual rainfall 
+of around 2000\,mm in 2013, consistent with the Uttarakhand cloudbursts 
+observed in that year.
+
+The refinement stage evaluated three key components: smoothing, anomaly-threshold 
+selection, and extreme-event rule tuning using the cleaned weather data for 
+Mumbai, Delhi, Dehradun, and Jodhpur. 
+
+For smoothing, rolling windows of 7, 15, 30, 45, 60, and 90 days were compared 
+alongside STL periods of 90, 180, and 365 days, as well as harmonic counts of 
+2, 4, 6, and 8. The optimal smoothing configuration was achieved using STL 
+(period = 180) for Dehradun, Delhi, and Jodhpur, while Mumbai performed best 
+with a rolling window of 90 days, indicating that longer seasonal smoothing is 
+generally more suitable for most cities.
+
+In anomaly refinement, thresholds ranging from 2.5 to 4.5 were tested. A threshold 
+of 3.5 emerged as optimal across all four cities, as it successfully preserved 
+known extreme events while minimising residual outliers and additional missing values.
+
+For extreme-event classification, three rule sets---\texttt{imd\_fixed}, 
+\texttt{city\_percentile}, and \texttt{season\_aware\_hybrid}---were evaluated. 
+Among these, \texttt{season\_aware\_hybrid} consistently achieved the highest 
+composite score across all cities.
+
+Overall, the selected parameter combination provides the best balance between 
+noise reduction, trend preservation, anomaly control, and realistic detection 
+of weather extremes. Consequently, the refinement process enhances the robustness, 
+interpretability, and reliability of the dataset and its final analysis.
 \section{Acknowledgements}
-% TODO: to be filled by team
+We would like to thank Prof.\ Bedartha Goswami and Prof.\ Kalpesh Kapoor 
+for designing and teaching DS3294, and for giving us the opportunity to 
+work on this project. Their guidance and feedback throughout the seven 
+weeks of the project were invaluable in shaping both the direction and 
+quality of our work.
 
+We would also like to thank our fellow team members --- Rishabh Das, 
+Aakarsh Joshi, Hire Sakshi, and Raghav Pareek --- for their consistent 
+effort and collaboration throughout the project. Each member contributed 
+meaningfully to different parts of the pipeline, and the project would 
+not have come together without that collective work.
 \section{Author Contributions}
-My contribution to this project covered Parts 1, 2, and 3 ---
-data collection, data cleaning, and the data quality report.
-I wrote the \texttt{raw\_data/} folder with separate download scripts for
-each city, handling the NOAA server issues and setting up the \texttt{.nc}
-caching system so data only needs to be downloaded once.
-I wrote the \texttt{cleaned\_data/} folder with the full cleaning pipeline
-per city, including fill value replacement, unit conversion, impossible value
-removal, and anomaly detection.
-I also wrote \texttt{data\_quality\_report.py} which produces the two
-quality figures described in Section~5.1.
+
+\textbf{Raghav Pareek} handled data collection, data cleaning, the data 
+quality report, and the write-up for these sections. The automated download 
+scripts in the \texttt{raw\_data/} folder were written to fetch 25 years of 
+daily weather records for each city directly from NOAA's servers, including 
+handling HTTP 503 errors and setting up a \texttt{.nc} caching system. The 
+full cleaning pipeline in \texttt{cleaned\_data/} was written covering fill 
+value replacement, unit conversion from imperial to metric, removal of 
+physically impossible values, and robust MAD-based anomaly detection with 
+protection for known historical extreme events. The data quality report 
+(\texttt{data\_quality\_report.py}) was also written, producing figures 
+summarising missing data percentages, record coverage, fill value counts, 
+and descriptive statistics across all four cities.
+
+\textbf{Hire Sakshi} handled seasonal analysis, interannual trend analysis, 
+variability analysis, and the write-up for these sections. Temperature and 
+rainfall seasonality figures were produced revealing climatic differences 
+across cities, along with a comparative humidity figure using the 
+temperature--dew point gap as a moisture proxy. Year-wise temperature and 
+rainfall trend figures covering 2000--2024 were produced identifying a 
+gradual warming signal with city-specific differences in rate and variability. 
+Box plots and bar charts were also produced to characterise year-to-year 
+spread in temperature, precipitation, and wind speed, showing Jodhpur as 
+having the highest rainfall variability and Mumbai the most consistent wind 
+pattern.
+
+\textbf{Rishabh Das} handled trend and smoothing analysis, trend analysis 
+results, and the write-up for these sections. Three complementary smoothing 
+methods were implemented: a rolling window average over 7, 30, and 90-day 
+windows (with 30-day emerging as the best default), STL decomposition 
+separating temperature into trend, seasonal, and residual components, and 
+Fourier-based harmonic analysis quantifying dominant periodic cycles. Results 
+showed that the annual cycle explains 65--80\% of temperature variance and 
+that STL revealed a slight warming of +0.3--0.5\textdegree C in Delhi and 
+Mumbai over the analysis period. A cross-method comparison was also carried 
+out showing agreement on broad patterns with method-specific differences in 
+sensitivity to short-term variability.
+
+\textbf{Aakarsh Joshi} handled refinement analysis, dashboard development, 
+and the write-up for these sections. Four figures were produced to evaluate 
+anomaly detection across different threshold settings and cities, identifying 
+3.5 as the optimal threshold. Smoothing method comparisons showed STL with 
+period 180 works best for Delhi, Dehradun, and Jodhpur, while a rolling 
+window of 90 works best for Mumbai. Extreme-event rule sets were also 
+evaluated, with the \texttt{season\_aware\_hybrid} approach performing best 
+across all cities. An interactive dashboard was developed to bring together 
+all project outputs into a single accessible interface for city-wise 
+comparison.
+
+
 
 \section{Code availability}
 The code for this project is available at the following GitHub repository:
@@ -325,17 +673,29 @@ the cleaning scripts are in the \texttt{cleaned\_data/} folder.
 % --------------------------------------------------------------------
 % ---- DO NOT CHANGE THIS BLOCK OF CODE
 \section{References}
-\bibliography{refs}
+
+\begin{thebibliography}{9}
+
+\bibitem{cleveland1990}
+Cleveland, R.B., Cleveland, W.S., McRae, J.E., and Terpenning, I. (1990).
+STL: A Seasonal-Trend Decomposition Procedure Based on Loess.
+\textit{Journal of Official Statistics}, 6(1), 3--73.
+
+\bibitem{leys2013}
+Leys, C., Ley, C., Klein, O., Bernard, P., and Licata, L. (2013).
+Detecting outliers: Do not use standard deviation around the mean,
+use absolute deviation around the median.
+\textit{Journal of Experimental Social Psychology}, 49(4), 764--766.
+
+\end{thebibliography}
 % --------------------------------------------------------------------
 
 
 \section{Appendix}
 
-\subsection{Additional figures}
-% TODO: add any extra figures here if needed
 
-\subsection{Algorithms}
-% TODO: add any algorithms here if needed
+
+
 
 \subsection{Code snippets}
 
@@ -356,8 +716,34 @@ for col in ['TEMP_C', 'MAX_C', 'MIN_C', 'PRCP_MM', 'WDSP_MS', 'DEWP_C']:
     is_anomaly = pd.Series(np.abs(zscore) > 3.5, index=df.index)
     df.loc[is_anomaly & ~df['_KNOWN_EXTREME'], col] = np.nan
 \end{minted}
+The function below shows the rolling average computation used
+in the trend and smoothing analysis.
 
+\begin{minted}[bgcolor=white, fontsize=\small, linenos, frame=none]{python}
+def rolling_average(data, windows=[7, 30, 90], save_plot=True):
+    """Compute and plot rolling averages for given data"""
+    results_dir = os.path.join(os.path.dirname(__file__), 'results')
+    os.makedirs(results_dir, exist_ok=True)
 
+    fig, axes = plt.subplots(2, 2, figsize=(14, 8))
+    axes = axes.flatten()
 
+    for idx, city in enumerate(data['CITY'].unique()):
+        city_data = data[data['CITY'] == city].sort_values('DATE').copy()
+
+        for w in windows:
+            col = f'rolling_{w}d'
+            city_data[col] = city_data['TEMP_C'].rolling(
+                window=w, center=True
+            ).mean()
+            reduction = (
+                (city_data['TEMP_C'].std() - city_data[col].std())
+                / city_data['TEMP_C'].std() * 100
+            )
+            print(f"{city} - {w} day window: STD reduced by {reduction:.1f}%")
+\end{minted}
+
+% --------------------------------------------------------------------
+% ---- DO NOT CHANGE THIS BLOCK OF CODE
 \end{document}
 % --------------------------------------------------------------------
