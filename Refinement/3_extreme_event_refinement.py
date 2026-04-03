@@ -1,4 +1,12 @@
+import os
+import sys
+
 import pandas as pd
+
+
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+if CURRENT_DIR not in sys.path:
+    sys.path.append(CURRENT_DIR)
 
 from common import CITY_CONFIGS, EXPECTED_HEAT_MONTHS, EXPECTED_RAIN_MONTHS, RESULTS_DIR, classify_extremes, load_all_cleaned_data, save_table
 
