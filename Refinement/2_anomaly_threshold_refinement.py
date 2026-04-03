@@ -15,9 +15,8 @@ from common import CITY_CONFIGS, CORE_NUMERIC_COLS, RESULTS_DIR, known_extreme_m
 THRESHOLDS = [2.5, 3.0, 3.5, 4.0, 4.5]
 
 
-def evaluate_threshold(config, threshold):
-    df = load_city_cleaned_data(config)
-    df = df.sort_values("DATE").dropna(subset=["DATE"]).reset_index(drop=True)
+def evaluate_threshold(config, base_df, threshold):
+    df = base_df.copy()
 
     monitored_cols = [col for col in CORE_NUMERIC_COLS if col in df.columns]
     baseline_valid = int(df[monitored_cols].notna().sum().sum())
@@ -84,8 +83,10 @@ def main():
     rows = []
 
     for config in CITY_CONFIGS:
+        base_df = load_city_cleaned_data(config)
+        base_df = base_df.sort_values("DATE").dropna(subset=["DATE"]).reset_index(drop=True)
         for threshold in THRESHOLDS:
-            row = evaluate_threshold(config, threshold)
+            row = evaluate_threshold(config, base_df, threshold)
             rows.append(row)
 
     result_df = pd.DataFrame(rows)
