@@ -1,10 +1,17 @@
 import math
+import os
+import sys
 
 import numpy as np
 import pandas as pd
 from statsmodels.tsa.seasonal import STL
 
-from common import CITY_CONFIGS, RESULTS_PATH, load_all_cleaned_data, save_table, safe_ratio
+
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+if CURRENT_DIR not in sys.path:
+    sys.path.append(CURRENT_DIR)
+
+from common import CITY_CONFIGS, RESULTS_DIR, load_all_cleaned_data, save_table, safe_ratio
 
 
 ROLLING_WINDOWS = [7, 15, 30, 45, 60, 90]
@@ -117,7 +124,7 @@ def main():
 
     save_table(result_df, "smoothing_refinement_all_results.csv")
     save_table(best_df, "smoothing_refinement_best_by_city.csv")
-    print(f"Saved smoothing refinement outputs to {RESULTS_PATH}")
+    print(f"Saved smoothing refinement outputs to {RESULTS_DIR}")
 
 
 if __name__ == "__main__":

@@ -1,7 +1,15 @@
+import os
+import sys
+
 import numpy as np
 import pandas as pd
 
-from common import CITY_CONFIGS, CORE_NUMERIC_COLS, RESULTS_PATH, known_extreme_mask, load_city_cleaned_data, robust_zscore, save_table
+
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+if CURRENT_DIR not in sys.path:
+    sys.path.append(CURRENT_DIR)
+
+from common import CITY_CONFIGS, CORE_NUMERIC_COLS, RESULTS_DIR, known_extreme_mask, load_city_cleaned_data, robust_zscore, save_table
 
 
 THRESHOLDS = [2.5, 3.0, 3.5, 4.0, 4.5]
@@ -86,7 +94,7 @@ def main():
 
     save_table(result_df, "anomaly_threshold_refinement_all_results.csv")
     save_table(best_df, "anomaly_threshold_refinement_best_by_city.csv")
-    print(f"Saved anomaly-threshold refinement outputs to {RESULTS_PATH}")
+    print(f"Saved anomaly-threshold refinement outputs to {RESULTS_DIR}")
 
 
 if __name__ == "__main__":
