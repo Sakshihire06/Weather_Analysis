@@ -124,7 +124,7 @@ def main():
 
     save_table(result_df, "smoothing_refinement_all_results.csv")
     save_table(best_df, "smoothing_refinement_best_by_city.csv")
-    print(f"Saved smoothing refinement outputs to {RESULTS_DIR}")
+    print(f"Saved smoothing refinement outputs to {RESULTS_DIR} - 1_smoothing_refinement.py:127")
 
 
 if __name__ == "__main__":
